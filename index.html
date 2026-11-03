@@ -6,12 +6,40 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#bfe3f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Meadow Money">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="icon" href="icon.svg">
-<style>html,body{margin:0;height:100%;background:#bfe3f2}iframe{border:0;width:100%;height:100%;display:block}</style>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:linear-gradient(180deg,#bfe3f2,#fdf1dc);font-family:Fredoka,system-ui,sans-serif;color:#3d4a3a}
+iframe{border:0;width:100%;height:100%;display:block}
+.gate{display:none;min-height:100%;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+.card{background:#fffaf0;border-radius:26px;padding:24px;max-width:380px;text-align:center;box-shadow:0 6px 0 rgba(61,74,58,.12),0 12px 24px rgba(61,74,58,.1)}
+.card img{width:84px;height:84px;border-radius:20px}
+h1{font-family:'Patrick Hand',cursive;font-size:30px;margin:10px 0 6px}
+p{font-size:16px;line-height:1.4}
+ol{text-align:left;font-family:'Patrick Hand';font-size:19px;line-height:1.4;padding-left:22px}
+button{width:100%;border:0;border-radius:18px;padding:14px;font:inherit;font-size:17px;font-weight:600;color:#fff;background:#7aa86b;box-shadow:0 5px 0 #5b8a4e;margin-top:8px}
+.pill{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom) + 90px);background:rgba(255,250,240,.95);color:#3d4a3a;font-size:12px;padding:6px 10px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:opacity 1s}
+</style>
 </head><body>
-<iframe id="app" src="https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec" allow="camera"></iframe>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script>
+<div class="gate" id="gate"><div class="card">
+  <img src="icon-512.png" alt="">
+  <h1>Meadow Money</h1>
+  <p>This app needs a real browser so Google can sign you in safely. Messenger, Facebook and Instagram browsers can't do that.</p>
+  <ol><li>Tap <b>⋯</b> or the share icon at the top or bottom</li><li>Choose <b>Open in Safari</b> or <b>Open in Chrome</b></li><li>Sign in with your Google account</li></ol>
+  <button id="copy">Copy link</button>
+  <p id="copied" style="display:none">Copied! Paste it in Safari or Chrome 🌱</p>
+</div></div>
+<iframe id="app" allow="camera" hidden></iframe>
+<a class="pill" id="pill" href="https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec" target="_blank" rel="noopener" hidden>Trouble loading? Open directly ↗</a>
+<script>
+var URLX='https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec';
+var ua=navigator.userAgent||'';
+var inApp=/FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|Twitter|MicroMessenger|TikTok|Snapchat|; wv\)/i.test(ua);
+if(inApp){document.getElementById('gate').style.display='flex';
+  document.getElementById('copy').onclick=function(){var l=location.href;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).catch(function(){prompt('Copy this link:',l)}).then(function(){document.getElementById('copied').style.display='block'})};
+}else{var f=document.getElementById('app');f.src=URLX;f.hidden=false;var p=document.getElementById('pill');p.hidden=false;setTimeout(function(){p.style.opacity='0';setTimeout(function(){p.hidden=true},1000)},12000);}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script>
 </body></html>
