@@ -360,6 +360,7 @@ function gisReady(){ if(document.readyState==='loading') return document.addEven
   <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
   <p id="signinNote" style="display:none;background:#fbefe0;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.4;text-align:left"></p>
   <button class="linkbtn" id="switchAcct" onclick="signIn('select_account')">Use a different Google account</button>
+  <a id="apkLink" class="linkbtn" href="MeadowMoney.apk" download style="display:none;font-weight:600">📲 Get the Android app</a>
   <div class="legal"><a href="privacy.html">Privacy policy</a></div>
 </div></div>
 <div class="overlay hide" id="gate"><div class="card">
@@ -612,12 +613,21 @@ function maybeShowInstall(){
   $('installBtn2').style.display=can?'flex':'none';
   if(!can||!SS)return;
   const d=Number(ls.get('mm_inst_dismiss')||0);if(d&&Date.now()-d<5*864e5)return;
+  if(p==='android'){$('instText').textContent='Get the Meadow Money Android app 📲';$('instGo').textContent='Download';$('installBar').classList.add('show');return;}
   $('instText').textContent=deferredPrompt?'Install Meadow Money — opens like a real app, one tap away':(p==='macsafari'?'Add Meadow Money to your Dock':'Add Meadow Money to your Home Screen');
   $('instGo').textContent=deferredPrompt?'Install':'Show me';
   $('installBar').classList.add('show');
 }
 window.maybeShowInstall=maybeShowInstall;
+const APK_URL='MeadowMoney.apk';
+function inAndroidApp(){return (document.referrer||'').startsWith('android-app://')||isStandalone();}
+function androidApkSheet(){
+  $('sheetTitle').textContent='Install the Android app';
+  $('sheetBody').innerHTML='<ol><li>Your download has started — open <b>MeadowMoney.apk</b> from the notification or your Downloads</li><li>If asked, tap <b>Settings</b> and allow <b>Install unknown apps</b> for your browser</li><li>Tap <b>Install</b>, then open Meadow Money 🌱</li></ol><p style="font-size:15px;color:var(--soft)">Prefer not to download? Use the browser menu <span class="ico2">⋮</span> → <b>Install app</b> instead.</p>';
+  $('instSheet').classList.remove('hide');
+}
 function doInstall(){
+  if(devicePlatform()==='android'&&!inAndroidApp()){const a=document.createElement('a');a.href=APK_URL;a.download='MeadowMoney.apk';document.body.appendChild(a);a.click();a.remove();androidApkSheet();return;}
   if(deferredPrompt){const p=deferredPrompt;deferredPrompt=null;p.prompt();p.userChoice.then(c=>{if(c.outcome==='accepted')hideInstall();}).catch(()=>{});return;}
   const p=devicePlatform();let t='Add to Home Screen',b='';
   if(p==='ios'){b=/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
@@ -737,6 +747,7 @@ $('sfxToggle').onchange=e=>{ls.set('mm_sfx',e.target.checked?'on':'off');if(e.ta
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#musicBtn'))return;actx();if(musicPref()&&!SND.on&&!document.hidden)startMusic();},{passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic();else if(musicPref()&&SND.ctx)startMusic();});
 syncSoundUI();
+if(devicePlatform()==='android'&&!inAndroidApp())$('apkLink').style.display='block';
 maybeShowInstall();
 setType('expense');$('fDate').value=today();$('gStart').value=today();
 $('loading').classList.add('hide');
