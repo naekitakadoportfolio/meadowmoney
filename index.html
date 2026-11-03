@@ -166,7 +166,7 @@ function initAuth(){
     client_id: CLIENT_ID, scope: SCOPES,
     callback: r => {
       if (r.error) { tokenWaiters.splice(0).forEach(w => w.rej(new Error(r.error))); return; }
-      token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in || 3600) - 120) * 1000;
+      window.__tok = r; token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in || 3600) - 120) * 1000;
       tokenWaiters.splice(0).forEach(w => w.res(token));
     },
     error_callback: e => tokenWaiters.splice(0).forEach(w => w.rej(new Error(e.type === 'popup_closed' ? 'Sign-in was closed' : (e.message || e.type))))
@@ -195,7 +195,7 @@ async function findFile(q){ const r = await gapi(DRIVE + '/files?fields=files(id
 async function openSpreadsheet(){
   let id = ls.get('mm_ss_' + userEmail);
   if (id) { try { await gapi(SHEETS + '/' + id + '?fields=spreadsheetId'); } catch(e) { id = null; } }
-  if (!id) { const f = await findFile("name='" + SHEET_NAME + "' and mimeType='application/vnd.google-apps.spreadsheet'"); id = f && f.id; }
+  if (!id) { try { const f = await findFile("name='" + SHEET_NAME + "' and mimeType='application/vnd.google-apps.spreadsheet'"); id = f && f.id; if (id) await gapi(SHEETS + '/' + id + '?fields=spreadsheetId'); } catch(e) { id = null; } }
   if (!id) {
     const ss = await gapi(SHEETS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
       properties: { title: SHEET_NAME }, sheets: Object.keys(HEAD).map(t => ({ properties: { title: t, gridProperties: { frozenRowCount: 1 } } })) }) });
@@ -306,18 +306,24 @@ function normDate(v){
 async function signIn(prompt){
   const btn = document.getElementById('signinBtn'); if (btn) btn.disabled = true;
   try {
-    await requestToken(prompt);
-    const me = await gapi('https://www.googleapis.com/oauth2/v3/userinfo');
+    await requestToken(window.__needConsent ? 'consent' : prompt);
+    const DRV = 'https://www.googleapis.com/auth/drive.file';
+    if (window.__tok && google.accounts.oauth2.hasGrantedAllScopes && !google.accounts.oauth2.hasGrantedAllScopes(window.__tok, DRV)) { token = null; window.__needConsent = true; throw new Error('NEED_DRIVE'); }
+    window.__needConsent = false;
+    let me = {}; try { me = await gapi('https://www.googleapis.com/oauth2/v3/userinfo'); } catch(e) { me = {}; }
+    if (!me.email) me.email = userEmail || 'me';
     if (me.email !== userEmail) { userEmail = me.email; ls.set('mm_email', userEmail); }
     document.getElementById('who').textContent = userEmail;
     document.getElementById('loading').classList.remove('hide');
-    await openSpreadsheet();
+    try { await openSpreadsheet(); } catch(e) { throw new Error('Could not set up your Meadow Money sheet (' + e.message + ')'); }
     document.getElementById('signin').classList.add('hide');
     render(await call('getData'));
     if (window.maybeShowInstall) maybeShowInstall();
   } catch (e) {
     document.getElementById('loading').classList.add('hide');
-    toast('🌧️ ' + e.message);
+    const note = document.getElementById('signinNote');
+    if (e.message === 'NEED_DRIVE') { note.innerHTML = '🌱 Almost! Meadow Money needs permission to keep its sheet in <b>your Google Drive</b>. Tap the button again and make sure the <b>Google Drive box is ticked ✅</b> before tapping Continue.'; note.style.display = 'block'; }
+    else { note.textContent = '🌧️ ' + e.message + ' — tap the button to try again.'; note.style.display = 'block'; window.__needConsent = /permission|scope|insufficient/i.test(e.message); }
   } finally { if (btn) btn.disabled = false; }
 }
 function signOut(){
@@ -344,6 +350,7 @@ function gisReady(){ if(document.readyState==='loading') return document.addEven
   <h2>Meadow Money</h2>
   <p>Your cozy savings &amp; income tracker. Your records are saved privately in <b>your own Google Drive</b>.</p>
   <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
+  <p id="signinNote" style="display:none;background:#fbefe0;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.4;text-align:left"></p>
   <button class="linkbtn" id="switchAcct" onclick="signIn('select_account')">Use a different Google account</button>
   <div class="legal"><a href="privacy.html">Privacy policy</a></div>
 </div></div>
