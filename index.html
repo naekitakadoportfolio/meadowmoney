@@ -11,35 +11,40 @@
 <link rel="icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;height:100%;background:linear-gradient(180deg,#bfe3f2,#fdf1dc);font-family:Fredoka,system-ui,sans-serif;color:#3d4a3a}
-iframe{border:0;width:100%;height:100%;display:block}
-.gate{display:none;min-height:100%;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
-.card{background:#fffaf0;border-radius:26px;padding:24px;max-width:380px;text-align:center;box-shadow:0 6px 0 rgba(61,74,58,.12),0 12px 24px rgba(61,74,58,.1)}
-.card img{width:84px;height:84px;border-radius:20px}
-h1{font-family:'Patrick Hand',cursive;font-size:30px;margin:10px 0 6px}
-p{font-size:16px;line-height:1.4}
+html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#bfe3f2,#fdf1dc);font-family:Fredoka,system-ui,sans-serif;color:#3d4a3a}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+.card{background:#fffaf0;border-radius:26px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:0 6px 0 rgba(61,74,58,.12),0 12px 24px rgba(61,74,58,.1)}
+.card img{width:88px;height:88px;border-radius:22px;animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+h1{font-family:'Patrick Hand',cursive;font-size:32px;margin:10px 0 4px}
+p{font-size:16px;line-height:1.4;margin:8px 0}
 ol{text-align:left;font-family:'Patrick Hand';font-size:19px;line-height:1.4;padding-left:22px}
-button{width:100%;border:0;border-radius:18px;padding:14px;font:inherit;font-size:17px;font-weight:600;color:#fff;background:#7aa86b;box-shadow:0 5px 0 #5b8a4e;margin-top:8px}
-.pill{position:fixed;right:10px;bottom:calc(env(safe-area-inset-bottom) + 90px);background:rgba(255,250,240,.95);color:#3d4a3a;font-size:12px;padding:6px 10px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:opacity 1s}
+.btn{display:block;width:100%;box-sizing:border-box;border:0;border-radius:18px;padding:15px;font:inherit;font-size:18px;font-weight:600;color:#fff;background:#7aa86b;box-shadow:0 5px 0 #5b8a4e;margin-top:12px;text-decoration:none}
+small{color:#6b7a66;display:block;margin-top:14px;line-height:1.4}
+.hide{display:none}
 </style>
-</head><body>
-<div class="gate" id="gate"><div class="card">
+</head><body><div class="wrap"><div class="card">
   <img src="icon-512.png" alt="">
   <h1>Meadow Money</h1>
-  <p>This app needs a real browser so Google can sign you in safely. Messenger, Facebook and Instagram browsers can't do that.</p>
-  <ol><li>Tap <b>⋯</b> or the share icon at the top or bottom</li><li>Choose <b>Open in Safari</b> or <b>Open in Chrome</b></li><li>Sign in with your Google account</li></ol>
-  <button id="copy">Copy link</button>
-  <p id="copied" style="display:none">Copied! Paste it in Safari or Chrome 🌱</p>
+  <div id="go">
+    <p>Opening your meadow… 🌱</p>
+    <a class="btn" id="open" href="https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec">Open Meadow Money</a>
+    <small>First time? Sign in with your Google account, tap <b>Advanced → Go to Meadow Money</b>, then <b>Allow</b>.<br>Seeing an error? Open this page in a private/incognito tab signed into just one Google account.</small>
+  </div>
+  <div id="gate" class="hide">
+    <p>This app needs a real browser so Google can sign you in safely. Messenger, Facebook and Instagram browsers can't do that.</p>
+    <ol><li>Tap <b>⋯</b> or the share icon</li><li>Choose <b>Open in Safari</b> or <b>Open in Chrome</b></li><li>Sign in with your Google account</li></ol>
+    <button class="btn" id="copy">Copy link</button>
+    <p id="copied" class="hide">Copied! Paste it in Safari or Chrome 🌱</p>
+  </div>
 </div></div>
-<iframe id="app" allow="camera" hidden></iframe>
-<a class="pill" id="pill" href="https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec" target="_blank" rel="noopener" hidden>Trouble loading? Open directly ↗</a>
 <script>
 var URLX='https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec';
 var ua=navigator.userAgent||'';
-var inApp=/FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|Twitter|MicroMessenger|TikTok|Snapchat|; wv\)/i.test(ua);
-if(inApp){document.getElementById('gate').style.display='flex';
-  document.getElementById('copy').onclick=function(){var l=location.href;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).catch(function(){prompt('Copy this link:',l)}).then(function(){document.getElementById('copied').style.display='block'})};
-}else{var f=document.getElementById('app');f.src=URLX;f.hidden=false;var p=document.getElementById('pill');p.hidden=false;setTimeout(function(){p.style.opacity='0';setTimeout(function(){p.hidden=true},1000)},12000);}
+var inApp=/FBAN|FBAV|FB_IAB|Messenger|Orca-Android|Instagram|Line\/|Twitter|MicroMessenger|TikTok|Snapchat/i.test(ua);
+if(inApp){document.getElementById('go').className='hide';document.getElementById('gate').className='';
+  document.getElementById('copy').onclick=function(){var l=location.href;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).catch(function(){prompt('Copy this link:',l)}).then(function(){document.getElementById('copied').className=''})};
+}else{setTimeout(function(){location.href=URLX},900);}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
 </body></html>
