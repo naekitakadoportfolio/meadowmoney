@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.naekitakadoportfolio.meadowmoney",
+        "sha256_cert_fingerprints": ["4E:69:FB:31:98:1C:6B:60:78:DD:9E:74:36:A1:AA:82:E0:38:C5:02:C1:AF:22:EF:94:34:DC:84:54:58:1B:8B"]
+      }
+    }]
