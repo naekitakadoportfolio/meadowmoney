@@ -139,6 +139,15 @@ body.tips #tutCard{display:block}
 .sheet .steps ol{padding-left:22px;margin:6px 0 14px}
 .ico2{display:inline-block;padding:0 7px;border-radius:7px;background:var(--cream);font-family:Fredoka,sans-serif;font-size:15px}
 .galbtn{border:0;background:none;color:var(--soft);font:inherit;font-size:14px;text-decoration:underline;margin-top:6px;cursor:pointer}
+.musicbtn{margin-left:auto;border:0;background:var(--paper);width:46px;height:46px;border-radius:50%;box-shadow:var(--shadow);font-size:20px;cursor:pointer;flex:none}
+.musicbtn.off{opacity:.5;filter:grayscale(1)}
+.eta{font-size:14px;color:var(--soft);margin-top:8px;line-height:1.4;background:#f6f1e4;border-radius:12px;padding:8px 10px}
+.eta.late{background:#fbe9e2}
+.b-near{background:#fdf0c4;color:#8a6a12}
+.petal{position:fixed;top:-40px;z-index:45;pointer-events:none;font-size:24px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(112vh) rotate(560deg);opacity:.15}}
+.setgroup{border-top:2px dotted #eadfc8;margin-top:14px;padding-top:12px}
+.setgroup .label{margin-bottom:8px}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -192,7 +201,7 @@ async function openSpreadsheet(){
       properties: { title: SHEET_NAME }, sheets: Object.keys(HEAD).map(t => ({ properties: { title: t, gridProperties: { frozenRowCount: 1 } } })) }) });
     id = ss.spreadsheetId;
     await gapi(SHEETS + '/' + id + '/values:batchUpdate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      valueInputOption: 'RAW', data: Object.keys(HEAD).map(t => ({ range: t + '!A1', values: [HEAD[t]].concat(t === 'Settings' ? [['currency', '₱']] : []) })) }) });
+      valueInputOption: 'RAW', data: Object.keys(HEAD).map(t => ({ range: t + '!A1', values: [HEAD[t]].concat(t === 'Settings' ? defaultCurrencyRows() : []) })) }) });
   }
   ls.set('mm_ss_' + userEmail, id); SS = id;
 }
@@ -210,6 +219,9 @@ async function saveTable(t){
 }
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
 const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+function defaultCurrencyRows(){const reg=((navigator.language||'').split('-')[1]||'').toUpperCase();
+  const M={US:['USD','$'],GB:['GBP','£'],JP:['JPY','¥'],KR:['KRW','₩'],IN:['INR','₹'],SG:['SGD','S$'],MY:['MYR','RM'],ID:['IDR','Rp'],TH:['THB','฿'],VN:['VND','₫'],AU:['AUD','A$'],NZ:['NZD','NZ$'],CA:['CAD','C$'],AE:['AED','AED '],SA:['SAR','SAR '],QA:['QAR','QAR '],KW:['KWD','KD '],HK:['HKD','HK$'],TW:['TWD','NT$'],CN:['CNY','¥'],MX:['MXN','MX$'],BR:['BRL','R$'],ZA:['ZAR','R'],NG:['NGN','₦'],CH:['CHF','CHF '],DE:['EUR','€'],FR:['EUR','€'],ES:['EUR','€'],IT:['EUR','€'],NL:['EUR','€'],IE:['EUR','€'],PT:['EUR','€'],BE:['EUR','€'],AT:['EUR','€'],FI:['EUR','€'],GR:['EUR','€']};
+  const c=M[reg]||['PHP','₱'];return [['currency',c[1]],['currencyCode',c[0]]];}
 const API = {
   async getData(){ await loadAll(); return buildData(); },
   async addTransaction(t){
@@ -356,6 +368,7 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
       <ellipse cx="19" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/><ellipse cx="41" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/>
       <path d="M27 42q3 3 6 0" stroke="#3d4a3a" stroke-width="2" fill="none" stroke-linecap="round"/></g></svg>
     <div><h1>Meadow Money</h1><div class="sub" id="greet">hello there ✿</div></div>
+    <button class="musicbtn" id="musicBtn" aria-label="Turn music on or off" data-tip="Turn the meadow music on or off. More sound settings are in 🌱 Goals.">🎶</button>
   </header>
   <section class="view on" id="v-home">
     <div class='card' id='tutCard'>
@@ -423,8 +436,13 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
       <input type="hidden" id="gId">
       <button class="btn peach" id="saveGoal">Plant goal</button>
       <div style="height:14px"></div>
-      <label class="f">Currency symbol<input id="currency" maxlength="4"></label>
+      <div class="setgroup"><div class="label">⚙️ settings</div>
+      <label class="f">Currency<select id="currency"></select></label>
+      <label class="f tiprow"><input type="checkbox" id="musicToggle"> 🎶 Meadow background music</label>
+      <label class="f tiprow"><input type="checkbox" id="sfxToggle"> 🔔 Chimes &amp; sound effects</label>
+      <label class="f tiprow"><input type="checkbox" id="notifyToggle"> 📣 Goal notifications on this device</label>
       <label class="f tiprow"><input type="checkbox" id="tipsToggle" onchange="setTips(this.checked)"> Show tutorial tips</label>
+      </div>
       <div class="acct">Signed in as <b id="who"></b> <a id="sheetLink" target="_blank" rel="noopener">📄 My data sheet</a><button onclick="signOut()">Sign out</button></div>
       <button class="btn ghost" id="installBtn2" onclick="doInstall()" style="margin-top:14px">📲 Install app on this device</button>
       <div class="legal"><a href="privacy.html">Privacy policy</a></div>
@@ -444,7 +462,8 @@ const ICON={Food:'🍙',Groceries:'🧺',Transport:'🚲',Bills:'💡',Shopping:
             Salary:'💼',Freelance:'🖌️',Business:'🏪','Side hustle':'✨',Gift:'🎁',Refund:'↩️'};
 let D=null,type='expense',filter='all';
 const $=id=>document.getElementById(id);
-const fmt=n=>(D?.settings?.currency||'₱')+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const NODEC=['JPY','KRW','VND','IDR'];
+const fmt=n=>{const v=Number(n||0),z=NODEC.includes(D?.settings?.currencyCode)?0:2;return (v<0?'-':'')+(D?.settings?.currency||'₱')+Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:z,maximumFractionDigits:z});};
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function call(fn,...args){
@@ -472,30 +491,30 @@ function render(d){
   const h=new Date().getHours();
   $('greet').textContent=(h<12?'good morning':h<18?'good afternoon':'good evening')+' ✿';
   $('balance').textContent=fmt(s.balance);$('mIn').textContent=fmt(s.monthIncome);$('mOut').textContent=fmt(s.monthExpense);
-  $('currency').value=d.settings.currency||'₱';
+  $('currency').value=d.settings.currencyCode||codeFromSymbol(d.settings.currency);
   const behind=d.goals.filter(g=>g.status==='behind');
   $('spiritMsg').textContent=!d.goals.length?'Plant a savings goal and I will keep watch over it 🌱'
     :behind.length?`A little behind on "${behind[0].name}" — about ${fmt(behind[0].perDay)} a day gets us back on track 🍂`
     :s.monthNet>=0?'The meadow is thriving! Every goal is on track 🌸':'Spending outgrew income this month — gentle steps 🍃';
-  const gHTML=d.goals.map(goalCard).join('');
+  CAD=cadence(d.tx);const gHTML=d.goals.map(goalCard).join('');
   $('homeGoals').innerHTML=gHTML;
   $('goalList').innerHTML=gHTML||'<div class="card empty">No goals yet — plant your first one below 🌱</div>';
   const cats=Object.entries(s.byCat).sort((a,b)=>b[1]-a[1]);const max=cats[0]?.[1]||1;
   $('cats').innerHTML=cats.length?cats.map(([c,v])=>`<div class="cat">${ICON[c]||'🍃'} <span style="width:80px">${esc(c)}</span><div class="bar"><i style="width:${v/max*100}%;background:linear-gradient(90deg,var(--peach),#fbd3bf)"></i></div><b>${fmt(v)}</b></div>`).join(''):'<div class="empty">No spending yet this month ✨</div>';
   renderHist();
-  applyTips(d.settings.tips!=='off');initTips();
+  applyTips(d.settings.tips!=='off');initTips();checkMilestones(d);
 }
 function goalCard(g){
-  const words={onTrack:'on track',ahead:'ahead!',behind:'a bit behind',done:'reached! 🎉'};
+  const words={onTrack:'on track',ahead:'ahead!',behind:'a bit behind',done:'reached! 🎉',near:'almost there! 🌟'};const st=(g.status!=='done'&&g.progress>=.8)?'near':g.status;
   const note=g.status==='done'?`You saved ${fmt(g.saved)} — beautiful work.`
     :g.status==='behind'?`You're ${fmt(-g.diff)} short of where you'd want to be. Save ~${fmt(g.perWeek)}/week to catch up.`
     :`${fmt(g.remaining)} to go · ~${fmt(g.perWeek)}/week · ${g.daysLeft} days left`;
   return `<div class="card"><div class="goal">
     <div class="jar"><div class="lid"></div><div class="glass"><div class="fill" style="height:${g.progress*100}%"></div><div class="emo">${esc(g.emoji)}</div></div></div>
-    <div style="flex:1;min-width:0"><b style="font-size:19px">${esc(g.name)}</b> <span class="badge b-${g.status}">${words[g.status]}</span>
+    <div style="flex:1;min-width:0"><b style="font-size:19px">${esc(g.name)}</b> <span class="badge b-${st}">${words[st]}</span>
       <div class="bar"><i style="width:${g.progress*100}%"></i></div>
       <div><b>${fmt(g.saved)}</b> <small>of ${fmt(g.target)} · by ${g.deadline}</small></div>
-      <div class="msg" style="font-size:17px;margin-top:4px">${note}</div>
+      <div class="msg" style="font-size:17px;margin-top:4px">${note}</div>${goalEtaHTML(g)}
       <div style="margin-top:6px"><button class="x" onclick="editGoal('${g.id}')">✏️ edit</button><button class="x" onclick="delGoal('${g.id}')">🗑️ remove</button></div>
     </div></div></div>`;
 }
@@ -535,19 +554,19 @@ $('saveTx').onclick=async()=>{
   if(!(Number(t.amount)>0))return toast('Add an amount first 🌼');
   render(await call('addTransaction',t));
   ['fAmount','fSource','fNote','fReceipt'].forEach(i=>$(i).value='');$('preview').hidden=true;$('cam').value='';
-  toast(type==='income'?'🌸 Income planted!':'🍂 Expense tucked away');go('home');
+  playChime('tap');toast(type==='income'?'🌸 Income planted!':'🍂 Expense tucked away');go('home');
 };
 async function delTx(id){if(confirm('Remove this entry?'))render(await call('deleteTransaction',id))}
 $('saveGoal').onclick=async()=>{
   const g={id:$('gId').value,name:$('gName').value,target:$('gTarget').value,emoji:$('gEmoji').value,startDate:$('gStart').value,deadline:$('gEnd').value};
   render(await call('saveGoal',g));['gId','gName','gTarget'].forEach(i=>$(i).value='');
-  $('goalFormTitle').textContent='plant a new savings goal 🌱';toast('🌱 Goal planted!');
+  $('goalFormTitle').textContent='plant a new savings goal 🌱';playChime('tap');toast('🌱 Goal planted!');
 };
 function editGoal(id){const g=D.goals.find(x=>x.id===id);go('goals');
   $('gId').value=g.id;$('gName').value=g.name;$('gTarget').value=g.target;$('gEmoji').value=g.emoji;$('gStart').value=g.startDate;$('gEnd').value=g.deadline;
   $('goalFormTitle').textContent='tending to '+g.name+' ✏️';}
 async function delGoal(id){if(confirm('Remove this goal?'))render(await call('deleteGoal',id))}
-$('currency').onchange=async e=>render(await call('saveSetting','currency',e.target.value||'₱'));
+$('currency').onchange=async e=>{const c=CURS.find(x=>x[0]===e.target.value)||CURS[0];DB.Settings=DB.Settings.filter(x=>x.key!=='currencyCode');DB.Settings.push({key:'currencyCode',value:c[0]});render(await call('saveSetting','currency',c[1]));toast('💱 Now showing '+c[2]+' ('+c[0]+')');};
 let tipsOn=true;
 function applyTips(on){tipsOn=on;document.body.classList.toggle('tips',on);$('tipsToggle').checked=on;if(!on)hideTip();}
 function initTips(){document.querySelectorAll('[data-tip]').forEach(el=>{if(el.querySelector(':scope>.tipdot'))return;const d=document.createElement('span');d.className='tipdot';d.textContent='?';d.onclick=e=>{e.stopPropagation();e.preventDefault();showTip(el)};el.appendChild(d);el.addEventListener('mouseenter',()=>{if(tipsOn)showTip(el)});el.addEventListener('mouseleave',hideTip);});}
@@ -587,6 +606,115 @@ function doInstall(){
   else{t='Install the app';b='<ol><li>Click the install icon <span class="ico2">⊕</span> at the right end of the address bar</li><li>Or open the browser menu and choose <b>Install Meadow Money</b></li></ol>';}
   $('sheetTitle').textContent=t;$('sheetBody').innerHTML=b;$('instSheet').classList.remove('hide');
 }
+/* ===== currencies ===== */
+const CURS=[['PHP','₱','Philippine peso'],['USD','$','US dollar'],['EUR','€','Euro'],['GBP','£','British pound'],['JPY','¥','Japanese yen'],['KRW','₩','South Korean won'],['CNY','¥','Chinese yuan'],['INR','₹','Indian rupee'],['SGD','S$','Singapore dollar'],['HKD','HK$','Hong Kong dollar'],['TWD','NT$','New Taiwan dollar'],['MYR','RM','Malaysian ringgit'],['IDR','Rp','Indonesian rupiah'],['THB','฿','Thai baht'],['VND','₫','Vietnamese dong'],['AUD','A$','Australian dollar'],['NZD','NZ$','New Zealand dollar'],['CAD','C$','Canadian dollar'],['AED','AED ','UAE dirham'],['SAR','SAR ','Saudi riyal'],['QAR','QAR ','Qatari riyal'],['KWD','KD ','Kuwaiti dinar'],['CHF','CHF ','Swiss franc'],['MXN','MX$','Mexican peso'],['BRL','R$','Brazilian real'],['ZAR','R','South African rand'],['NGN','₦','Nigerian naira']];
+$('currency').innerHTML=CURS.map(c=>'<option value="'+c[0]+'">'+c[1].trim()+'  '+c[0]+' — '+c[2]+'</option>').join('');
+function codeFromSymbol(sym){const c=CURS.find(x=>x[1]===sym||x[1].trim()===String(sym||'').trim());return c?c[0]:'PHP';}
+
+/* ===== pace & time estimates from how often income arrives ===== */
+let CAD=null;
+function cadence(tx){
+  const now=new Date(today()),from=new Date(now-120*864e5).toISOString().slice(0,10);
+  const recent=tx.filter(t=>t.date>=from&&t.date<=today());if(!recent.length)return null;
+  const first=recent.reduce((m,t)=>t.date<m?t.date:m,recent[0].date);
+  const span=Math.max(7,(now-new Date(first))/864e5+1);
+  const net=recent.reduce((s,t)=>s+(t.type==='income'?1:-1)*t.amount,0);
+  const days=[...new Set(recent.filter(t=>t.type==='income').map(t=>t.date))].sort();
+  let interval=null;
+  if(days.length>=2){const g=[];for(let i=1;i<days.length;i++)g.push((new Date(days[i])-new Date(days[i-1]))/864e5);g.sort((a,b)=>a-b);interval=Math.max(1,g[Math.floor(g.length/2)]);}
+  return {perDay:net/span,interval,perCycle:interval?net/span*interval:null};
+}
+function cycleWord(d){return d<=1.5?'day':d<=8?'week':d<=17?'2 weeks':d<=35?'month':Math.round(d)+' days';}
+function goalEtaInfo(g){
+  const c=CAD;if(g.status==='done'||!c)return null;
+  if(c.perDay<=0)return {late:true,text:'At your recent pace more is going out than coming in, so this jar isn’t filling yet. A small trim on spending gets it growing 🌱'};
+  const daysNeeded=g.remaining/c.perDay,eta=new Date(Date.now()+daysNeeded*864e5);
+  const when=eta.toLocaleDateString(undefined,{month:'short',day:'numeric',year:eta.getFullYear()!==new Date().getFullYear()?'numeric':undefined});
+  const late=new Date(g.deadline+'T23:59:59')<eta;
+  let t;
+  if(c.interval&&c.perCycle>0){const n=Math.max(1,Math.ceil(g.remaining/c.perCycle));
+    t='Money usually comes in every '+cycleWord(c.interval)+' and you keep about '+fmt(c.perCycle)+' each time — about '+n+' more payday'+(n>1?'s':'')+', around '+when+'.';}
+  else t='At about '+fmt(c.perDay*7)+' saved a week, you’ll get there around '+when+'.';
+  t+=late?' ⏰ That’s after your deadline — saving a bit more each payday will close the gap.':' ✅ Ahead of your deadline.';
+  return {late,text:t,when};
+}
+function goalEtaHTML(g){const i=goalEtaInfo(g);return i?'<div class="eta'+(i.late?' late':'')+'">⏳ '+esc(i.text)+'</div>':'';}
+
+/* ===== milestones: chimes + notifications ===== */
+function checkMilestones(d){
+  const key='mm_ms_'+userEmail;let ms={};try{ms=JSON.parse(ls.get(key)||'{}')}catch(e){}
+  let delay=0;const t=today();
+  d.goals.forEach(g=>{const m=ms[g.id]||{};
+    if(g.status==='done'){ if(!m.done){m.done=t;setTimeout(()=>celebrate(g),delay);delay+=3600;} }
+    else{ delete m.done; if(g.progress>=.8&&m.near!==t){m.near=t;setTimeout(()=>nearGoal(g),delay);delay+=3600;} }
+    ms[g.id]=m;});
+  ls.set(key,JSON.stringify(ms));
+}
+function celebrate(g){playChime('win');petals();toast('🎉 You filled your “'+g.name+'” jar!');sysNotify('🎉 Goal reached!','You saved '+fmt(g.target)+' for “'+g.name+'”. Beautiful work!');}
+function nearGoal(g){const i=goalEtaInfo(g);playChime('near');
+  toast('🌟 Almost there — '+Math.round(g.progress*100)+'% of “'+g.name+'”'+(i&&i.when?' · around '+i.when:''));
+  sysNotify('🌟 Almost at “'+g.name+'”',fmt(g.remaining)+' to go'+(i&&i.when?' — at your pace, around '+i.when:'')+'.');}
+function petals(){const e=['🌸','🍃','✨','🌼','💛'];for(let i=0;i<28;i++){const p=document.createElement('span');p.className='petal';p.textContent=e[i%e.length];p.style.left=Math.random()*100+'vw';p.style.animationDuration=(2.4+Math.random()*2.2)+'s';p.style.animationDelay=(Math.random()*.8)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),5600);}}
+function sysNotify(title,body){
+  if(ls.get('mm_notify')!=='on'||!('Notification' in window)||Notification.permission!=='granted')return;
+  const o={body,icon:'icon-192.png',badge:'icon-192.png'};
+  (navigator.serviceWorker?navigator.serviceWorker.ready.then(r=>r.showNotification(title,o)):Promise.reject()).catch(()=>{try{new Notification(title,o)}catch(e){}});
+}
+$('notifyToggle').onchange=e=>{
+  if(!e.target.checked){ls.set('mm_notify','off');return;}
+  if(!('Notification' in window)){e.target.checked=false;return toast(devicePlatform()==='ios'?'📣 On iPhone, install the app to your Home Screen first, then turn this on':'📣 This browser doesn’t support notifications');}
+  Notification.requestPermission().then(p=>{if(p==='granted'){ls.set('mm_notify','on');toast('📣 Goal notifications are on');sysNotify('Meadow Money','You’ll get a little note when you’re close to a goal 🌱');}
+    else{e.target.checked=false;ls.set('mm_notify','off');toast('📣 Notifications are blocked — allow them in your browser settings');}});
+};
+
+/* ===== meadow soundscape (generated live, original) ===== */
+const SND={ctx:null,master:null,bus:null,echo:null,on:false,timers:[],nodes:[]};
+const musicPref=()=>ls.get('mm_music')!=='off', sfxPref=()=>ls.get('mm_sfx')!=='off';
+function actx(){
+  if(!SND.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+    SND.ctx=new C();SND.master=SND.ctx.createGain();SND.master.gain.value=.9;SND.master.connect(SND.ctx.destination);}
+  if(SND.ctx.state==='suspended')SND.ctx.resume().catch(()=>{});return SND.ctx;
+}
+function bell(f,t,vol,dur,dest,echo){const c=SND.ctx;[1,2.76,5.4].forEach((m,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*m;
+  const v=vol/(1+i*2.5);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur/(1+i));
+  o.connect(g);g.connect(dest||SND.master);if(echo&&SND.echo)g.connect(SND.echo);o.start(t);o.stop(t+dur+.05);});}
+function startMusic(){
+  const c=actx();if(!c||SND.on)return;SND.on=true;
+  const bus=c.createGain();bus.gain.setValueAtTime(0,c.currentTime);bus.gain.linearRampToValueAtTime(.55,c.currentTime+3);bus.connect(SND.master);SND.bus=bus;
+  const dl=c.createDelay(1.5),fb=c.createGain(),wet=c.createGain();dl.delayTime.value=.42;fb.gain.value=.35;wet.gain.value=.3;dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(bus);SND.echo=dl;
+  const len=c.sampleRate*3,buf=c.createBuffer(1,len,c.sampleRate),ch=buf.getChannelData(0);let last=0;
+  for(let i=0;i<len;i++){last=(last+.02*(Math.random()*2-1))/1.02;ch[i]=last*3.5;}
+  const nz=c.createBufferSource();nz.buffer=buf;nz.loop=true;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=520;
+  const ng=c.createGain();ng.gain.value=.05;const lfo=c.createOscillator();lfo.frequency.value=.07;const lg=c.createGain();lg.gain.value=.035;
+  lfo.connect(lg);lg.connect(ng.gain);nz.connect(lp);lp.connect(ng);ng.connect(bus);nz.start();lfo.start();SND.nodes=[nz,lfo];
+  const chords=[[261.63,329.63,392,493.88],[220,261.63,329.63,392],[174.61,220,261.63,349.23],[196,246.94,293.66,392]];let ci=0;
+  const pad=()=>{if(!SND.on)return;const t=c.currentTime;chords[ci++%4].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain(),f2=c.createBiquadFilter();
+      o.type=i%2?'sine':'triangle';o.frequency.value=f/2;f2.type='lowpass';f2.frequency.value=900;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.032,t+2.5);g.gain.setValueAtTime(.032,t+6);g.gain.linearRampToValueAtTime(0,t+9.5);
+      o.connect(f2);f2.connect(g);g.connect(bus);o.start(t);o.stop(t+10);});SND.timers.push(setTimeout(pad,8000));};
+  const scale=[523.25,587.33,659.25,783.99,880,1046.5];
+  const pluck=()=>{if(!SND.on)return;bell(scale[Math.floor(Math.random()*scale.length)],c.currentTime,.045,2.2,bus,true);SND.timers.push(setTimeout(pluck,1500+Math.random()*3500));};
+  const bird=()=>{if(!SND.on)return;const t=c.currentTime,n=2+Math.floor(Math.random()*3);
+    for(let k=0;k<n;k++){const o=c.createOscillator(),g=c.createGain(),s=t+k*.13;o.type='sine';o.frequency.setValueAtTime(2600+Math.random()*600,s);o.frequency.exponentialRampToValueAtTime(3800+Math.random()*500,s+.08);
+      g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.01,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+.11);o.connect(g);g.connect(bus);o.start(s);o.stop(s+.13);}
+    SND.timers.push(setTimeout(bird,12000+Math.random()*20000));};
+  pad();SND.timers.push(setTimeout(pluck,2500));SND.timers.push(setTimeout(bird,7000));
+}
+function stopMusic(){if(!SND.on)return;SND.on=false;SND.timers.forEach(clearTimeout);SND.timers=[];const c=SND.ctx,b=SND.bus,ns=SND.nodes;
+  if(b){b.gain.cancelScheduledValues(c.currentTime);b.gain.setValueAtTime(b.gain.value,c.currentTime);b.gain.linearRampToValueAtTime(0,c.currentTime+1.2);
+    setTimeout(()=>{try{ns.forEach(n=>n.stop());b.disconnect();}catch(e){}},1500);}}
+function playChime(kind){if(!sfxPref())return;const c=actx();if(!c)return;const t=c.currentTime+.05;
+  const seq=kind==='win'?[523.25,659.25,783.99,1046.5,1318.5]:kind==='near'?[659.25,987.77]:[1046.5];
+  seq.forEach((f,i)=>bell(f,t+i*(kind==='win'?.14:.18),kind==='win'?.12:kind==='near'?.08:.04,kind==='tap'?1.2:2.4));
+  if(kind==='win')seq.forEach((f,i)=>bell(f*2,t+.9+i*.08,.05,1.6));}
+function syncSoundUI(){const m=musicPref();$('musicBtn').classList.toggle('off',!m);$('musicBtn').textContent=m?'🎶':'🔇';$('musicToggle').checked=m;$('sfxToggle').checked=sfxPref();$('notifyToggle').checked=ls.get('mm_notify')==='on'&&('Notification' in window)&&Notification.permission==='granted';}
+function setMusic(on){ls.set('mm_music',on?'on':'off');on?startMusic():stopMusic();syncSoundUI();toast(on?'🎶 Meadow music on':'🔇 Music off');}
+$('musicBtn').onclick=e=>{e.stopPropagation();setMusic(!SND.on);};
+$('musicToggle').onchange=e=>setMusic(e.target.checked);
+$('sfxToggle').onchange=e=>{ls.set('mm_sfx',e.target.checked?'on':'off');if(e.target.checked)playChime('near');};
+document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#musicBtn'))return;actx();if(musicPref()&&!SND.on&&!document.hidden)startMusic();},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic();else if(musicPref()&&SND.ctx)startMusic();});
+syncSoundUI();
 maybeShowInstall();
 setType('expense');$('fDate').value=today();$('gStart').value=today();
 $('loading').classList.add('hide');
