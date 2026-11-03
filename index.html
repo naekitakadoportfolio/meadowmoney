@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Meadow Money</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#bfe3f2">
+<meta name="theme-color" content="#bfe3f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c2347" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Meadow Money">
@@ -171,6 +173,38 @@ nav .add{min-width:58px;flex:none}
 .apkbtn{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:10px}
 .getapp{font-size:13px;color:var(--soft);margin-top:10px}.getapp a{color:var(--soft)}
 @media (min-width:700px){.wrap{max-width:600px}}
+:root{color-scheme:light dark}
+@media (prefers-color-scheme: dark){
+:root{--sky1:#1c2347;--sky2:#3b3557;--grass:#355f45;--grass2:#2a4e39;--ink:#f1e9d8;--soft:#bfb6a3;--paper:#262b42;--cream:#323853;--peach:#e7a286;--moss:#6f9e60;--sun:#f3e3a3;--plum:#a995cc;--shadow:0 6px 0 rgba(0,0,0,.25),0 12px 24px rgba(0,0,0,.3)}
+body{background:linear-gradient(180deg,#141a38 0%,#262b52 50%,#3b3557 100%);background-attachment:fixed}
+.sun{background:radial-gradient(circle,#fffbe6,#f3e3a3 55%,transparent 70%);box-shadow:0 0 50px rgba(243,227,163,.3);border-radius:50%}
+.cloud,.cloud:before,.cloud:after{background:#46507a}.cloud{opacity:.45}
+.h3{background:#3f6d4c}
+.card{border-color:rgba(255,255,255,.06)}
+.card.paper{background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(169,149,204,.12) 27px 28px),var(--paper)}
+.pill.in{background:#2f4a35}.pill.out{background:#4f3530}
+input,select,textarea{background:#1f2337;border-color:#3d4366;color:var(--ink)}
+.btn.ghost,.gbtn,.sbtn{background:#2f3450;color:var(--ink);border-color:#444a6e;box-shadow:0 5px 0 #1a1d2e}
+.sbtn span{color:var(--ink)}
+.seg button.on{background:#3d4366;color:var(--ink)}
+.scan{background:#2b3049;border-color:#4a5075}.scan.drag{background:#2f4a35}
+.b-onTrack{background:#2f4a35;color:#b8dfa8}.b-ahead{background:#2d3a63;color:#b9c8f5}.b-behind{background:#4f3530;color:#f3b8a6}.b-done,.b-near{background:#4e4428;color:#f3dc8f}
+.bar{background:#1f2337}
+.jar .glass{background:rgba(255,255,255,.06);border-color:#cfc6b2}.jar .lid{border-color:#cfc6b2}
+.eta{background:#2f3450}.eta.late{background:#4a3333}
+#tutCard{background:#2e2a48}
+.overlay{background:linear-gradient(180deg,#141a38,#3b3557)}.overlay.sheet{background:rgba(0,0,0,.5)}
+nav{background:rgba(38,43,66,.94)}
+#installBar,#tipBubble{background:#262b42}
+.toast{background:#f1e9d8;color:#262b42}
+.loading{background:rgba(20,26,56,.6)}
+.musicbtn{background:#2f3450}
+.tx{border-bottom-color:#3d4366}
+.acct a,.acct button{background:#323853}
+.setgroup{border-top-color:#3d4366}
+#signinNote{background:#3a3550!important}
+.ico2{background:#323853}
+}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -189,7 +223,7 @@ function initAuth(){
     client_id: CLIENT_ID, scope: SCOPES,
     callback: r => {
       if (r.error) { tokenWaiters.splice(0).forEach(w => w.rej(new Error(r.error))); return; }
-      window.__tok = r; token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in || 3600) - 120) * 1000;
+      window.__tok = r; token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in || 3600) - 120) * 1000; ls.set('mm_tok', JSON.stringify({ t: token, exp: tokenExp }));
       tokenWaiters.splice(0).forEach(w => w.res(token));
     },
     error_callback: e => tokenWaiters.splice(0).forEach(w => w.rej(new Error(e.type === 'popup_closed' ? 'Sign-in was closed' : (e.message || e.type))))
@@ -336,6 +370,7 @@ async function signIn(prompt){
     let me = {}; try { me = await gapi('https://www.googleapis.com/oauth2/v3/userinfo'); } catch(e) { me = {}; }
     if (!me.email) me.email = userEmail || 'me';
     if (me.email !== userEmail) { userEmail = me.email; ls.set('mm_email', userEmail); }
+    ls.set('mm_tok', JSON.stringify({ t: token, exp: tokenExp, email: userEmail }));
     document.getElementById('who').textContent = userEmail;
     document.getElementById('loading').classList.remove('hide');
     try { await openSpreadsheet(); } catch(e) { throw new Error('Could not set up your Meadow Money sheet (' + e.message + ')'); }
@@ -351,14 +386,26 @@ async function signIn(prompt){
 }
 function signOut(){
   try { if (token) google.accounts.oauth2.revoke(token, () => {}); } catch(e){}
-  token = null; userEmail = ''; ls.del('mm_email'); location.reload();
+  token = null; userEmail = ''; ls.del('mm_email'); ls.del('mm_tok'); location.reload();
 }
 function bootSignin(){
   const el = document.getElementById('signin'); el.classList.remove('hide');
   document.getElementById('signinBtn').innerHTML = '<span style="font-size:20px;font-weight:700;color:#4285f4">G</span> ' + (userEmail ? 'Continue as ' + userEmail : 'Sign in with Google');
   document.getElementById('switchAcct').style.display = userEmail ? 'block' : 'none';
 }
-function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth(); bootSignin(); }
+async function resumeSession(){
+  try {
+    document.getElementById('who').textContent = userEmail;
+    document.getElementById('loading').classList.remove('hide');
+    await openSpreadsheet();
+    render(await call('getData'));
+    if (window.maybeShowInstall) maybeShowInstall();
+  } catch(e) { token = null; ls.del('mm_tok'); document.getElementById('loading').classList.add('hide'); bootSignin(); }
+}
+function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth();
+  let c = null; try { c = JSON.parse(ls.get('mm_tok') || 'null'); } catch(e) {}
+  if (c && c.t && c.exp > Date.now() + 60000 && userEmail && (!c.email || c.email === userEmail)) { token = c.t; tokenExp = c.exp; resumeSession(); }
+  else bootSignin(); }
 </script>
 <script src="https://accounts.google.com/gsi/client" async onload="gisReady()"></script>
 </head>
