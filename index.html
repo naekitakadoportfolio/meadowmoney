@@ -148,6 +148,14 @@ body.tips #tutCard{display:block}
 @keyframes fall{to{transform:translateY(112vh) rotate(560deg);opacity:.15}}
 .setgroup{border-top:2px dotted #eadfc8;margin-top:14px;padding-top:12px}
 .setgroup .label{margin-bottom:8px}
+.scan{cursor:default}
+.scanbtns{display:flex;gap:10px;margin-top:12px}
+.sbtn{flex:1;border:2px solid #eadfc8;background:#fff;border-radius:18px;padding:14px 8px;font:inherit;font-size:26px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 0 #e3d8c0;transition:transform .1s}
+.sbtn:active{transform:translateY(3px);box-shadow:0 1px 0 #e3d8c0}
+.sbtn span{font-size:15px;font-weight:600;color:var(--ink)}
+.scan.drag{border-color:var(--moss);background:#eef6e6}
+.dropnote{display:block;margin-top:10px;color:var(--soft)}
+@media (hover:none){.dropnote{display:none}}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -403,8 +411,10 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
   <section class="view" id="v-add">
     <div class="card">
       <div class="seg" data-tip='Switch between money going out (expense) and money coming in (income).'><button class="on exp" data-t="expense">🍂 Expense</button><button class="inc" data-t="income">🌸 Income</button></div>
-      <div id="scanBox" data-tip='Tap to photograph a receipt. The total, date and store are filled in for you, just double-check them.' class="scan" onclick="document.getElementById('cam').click()">
-        <div style="font-size:34px">📷</div><b>Snap a receipt</b><br><small>I'll read the total for you</small><br><button type="button" class="galbtn" onclick="event.stopPropagation();document.getElementById('gal').click()">or pick a photo from your gallery</button>
+      <div id="scanBox" data-tip='Snap a new receipt or attach a picture you already have. The total, date and store are filled in for you, just double-check them.' class="scan">
+        <b>🧾 Add a receipt</b><br><small>I'll read the total for you</small>
+        <div class="scanbtns"><button type="button" class="sbtn" onclick="document.getElementById('cam').click()">📷<span>Snap photo</span></button><button type="button" class="sbtn" onclick="document.getElementById('gal').click()">🖼️<span>Attach picture</span></button></div>
+        <small class="dropnote">or drag &amp; drop / paste a receipt image here</small>
         <img id="preview" hidden>
       </div>
       <input type="file" id="cam" accept="image/*" capture="environment" hidden>
@@ -550,6 +560,11 @@ async function onPhoto(e){
   }catch(err){ /* error already shown; the form still works by hand */ }
 }
 $('cam').onchange=onPhoto;$('gal').onchange=onPhoto;
+function handleFile(f){if(!f)return;if(!/^image\//.test(f.type||'')&&!/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name||''))return toast('Please choose a picture of your receipt 🖼️');onPhoto({target:{files:[f],set value(v){}}});}
+['dragenter','dragover'].forEach(ev=>$('scanBox').addEventListener(ev,e=>{e.preventDefault();$('scanBox').classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>$('scanBox').addEventListener(ev,e=>{e.preventDefault();$('scanBox').classList.remove('drag');}));
+$('scanBox').addEventListener('drop',e=>handleFile(e.dataTransfer&&e.dataTransfer.files[0]));
+document.addEventListener('paste',e=>{if(!$('v-add').classList.contains('on')||type!=='expense')return;const it=[...((e.clipboardData&&e.clipboardData.items)||[])].find(i=>i.type&&i.type.startsWith('image/'));if(it){e.preventDefault();handleFile(it.getAsFile());}});
 function readRaw(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(f);});}
 function shrink(file,max){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);
   img.onload=()=>{try{const k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');
