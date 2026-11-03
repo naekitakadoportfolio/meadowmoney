@@ -156,6 +156,21 @@ body.tips #tutCard{display:block}
 .scan.drag{border-color:var(--moss);background:#eef6e6}
 .dropnote{display:block;margin-top:10px;color:var(--soft)}
 @media (hover:none){.dropnote{display:none}}
+html,body{overflow-x:hidden;max-width:100%}
+body{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-top:max(18px,calc(env(safe-area-inset-top) + 12px))}
+.row>*{min-width:0}
+input,select,textarea{min-width:0;max-width:100%}
+input[type=date]{display:block;min-height:50px;line-height:1.2}
+.card{overflow-wrap:anywhere}
+nav{left:0!important;right:0!important;transform:none!important;margin:0 auto;width:max-content;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));justify-content:center;align-items:center;bottom:max(12px,calc(env(safe-area-inset-bottom) + 8px))!important}
+nav button{min-width:64px;justify-content:center}
+nav .add{min-width:58px;flex:none}
+#installBar{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:calc(max(12px,env(safe-area-inset-bottom)) + 84px)}
+.toast{max-width:calc(100vw - 32px);text-align:center;top:max(16px,calc(env(safe-area-inset-top) + 8px))}
+.apkbtn{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:10px}
+.getapp{font-size:13px;color:var(--soft);margin-top:10px}.getapp a{color:var(--soft)}
+@media (min-width:700px){.wrap{max-width:600px}}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -360,7 +375,7 @@ function gisReady(){ if(document.readyState==='loading') return document.addEven
   <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
   <p id="signinNote" style="display:none;background:#fbefe0;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.4;text-align:left"></p>
   <button class="linkbtn" id="switchAcct" onclick="signIn('select_account')">Use a different Google account</button>
-  <a id="apkLink" class="linkbtn" href="MeadowMoney.apk" download style="display:none;font-weight:600">📲 Get the Android app</a>
+  <div class="getapp">📲 <a href="#" onclick="event.preventDefault();doInstall()">Get the app on this device</a></div>
   <div class="legal"><a href="privacy.html">Privacy policy</a></div>
 </div></div>
 <div class="overlay hide" id="gate"><div class="card">
@@ -613,21 +628,20 @@ function maybeShowInstall(){
   $('installBtn2').style.display=can?'flex':'none';
   if(!can||!SS)return;
   const d=Number(ls.get('mm_inst_dismiss')||0);if(d&&Date.now()-d<5*864e5)return;
-  if(p==='android'){$('instText').textContent='Get the Meadow Money Android app 📲';$('instGo').textContent='Download';$('installBar').classList.add('show');return;}
-  $('instText').textContent=deferredPrompt?'Install Meadow Money — opens like a real app, one tap away':(p==='macsafari'?'Add Meadow Money to your Dock':'Add Meadow Money to your Home Screen');
-  $('instGo').textContent=deferredPrompt?'Install':'Show me';
+  $('instText').textContent=p==='android'?'Get the Meadow Money app for Android':deferredPrompt?'Install Meadow Money — opens like a real app, one tap away':(p==='macsafari'?'Add Meadow Money to your Dock':'Add Meadow Money to your Home Screen');
+  $('instGo').textContent=p==='android'?'Get app':deferredPrompt?'Install':'Show me';
   $('installBar').classList.add('show');
 }
 window.maybeShowInstall=maybeShowInstall;
-const APK_URL='MeadowMoney.apk';
-function inAndroidApp(){return (document.referrer||'').startsWith('android-app://')||isStandalone();}
-function androidApkSheet(){
-  $('sheetTitle').textContent='Install the Android app';
-  $('sheetBody').innerHTML='<ol><li>Your download has started — open <b>MeadowMoney.apk</b> from the notification or your Downloads</li><li>If asked, tap <b>Settings</b> and allow <b>Install unknown apps</b> for your browser</li><li>Tap <b>Install</b>, then open Meadow Money 🌱</li></ol><p style="font-size:15px;color:var(--soft)">Prefer not to download? Use the browser menu <span class="ico2">⋮</span> → <b>Install app</b> instead.</p>';
-  $('instSheet').classList.remove('hide');
-}
+function installPWA(){$('instSheet').classList.add('hide');if(!deferredPrompt)return;const p=deferredPrompt;deferredPrompt=null;p.prompt();p.userChoice.then(c=>{if(c.outcome==='accepted')hideInstall();}).catch(()=>{});}
 function doInstall(){
-  if(devicePlatform()==='android'&&!inAndroidApp()){const a=document.createElement('a');a.href=APK_URL;a.download='MeadowMoney.apk';document.body.appendChild(a);a.click();a.remove();androidApkSheet();return;}
+  if(devicePlatform()==='android'){
+    $('sheetTitle').textContent='Get the Android app';
+    $('sheetBody').innerHTML='<a class="btn apkbtn" href="Meadow-Money.apk" download="Meadow-Money.apk">🤖 Download Android app (APK)</a>'
+      +'<ol><li>Tap <b>Download</b>, then open <b>Meadow-Money.apk</b></li><li>If asked, allow <b>Install unknown apps</b> for your browser</li><li>Tap <b>Install</b> — then sign in with Google once 🌱</li></ol>'
+      +(deferredPrompt?'<button class="btn ghost" onclick="installPWA()" style="margin-bottom:10px">📲 Or install from the browser instead</button>':'');
+    $('instSheet').classList.remove('hide');return;
+  }
   if(deferredPrompt){const p=deferredPrompt;deferredPrompt=null;p.prompt();p.userChoice.then(c=>{if(c.outcome==='accepted')hideInstall();}).catch(()=>{});return;}
   const p=devicePlatform();let t='Add to Home Screen',b='';
   if(p==='ios'){b=/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)
@@ -747,7 +761,6 @@ $('sfxToggle').onchange=e=>{ls.set('mm_sfx',e.target.checked?'on':'off');if(e.ta
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#musicBtn'))return;actx();if(musicPref()&&!SND.on&&!document.hidden)startMusic();},{passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic();else if(musicPref()&&SND.ctx)startMusic();});
 syncSoundUI();
-if(devicePlatform()==='android'&&!inAndroidApp())$('apkLink').style.display='block';
 maybeShowInstall();
 setType('expense');$('fDate').value=today();$('gStart').value=today();
 $('loading').classList.add('hide');
