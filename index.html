@@ -1,50 +1,540 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html>
+<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Meadow Money</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#bfe3f2">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Meadow Money">
 <link rel="apple-touch-icon" href="icon-512.png">
 <link rel="icon" href="icon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;min-height:100%;background:linear-gradient(180deg,#bfe3f2,#fdf1dc);font-family:Fredoka,system-ui,sans-serif;color:#3d4a3a}
-.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
-.card{background:#fffaf0;border-radius:26px;padding:26px;max-width:380px;width:100%;text-align:center;box-shadow:0 6px 0 rgba(61,74,58,.12),0 12px 24px rgba(61,74,58,.1)}
-.card img{width:88px;height:88px;border-radius:22px;animation:bob 3s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-4px)}}
-h1{font-family:'Patrick Hand',cursive;font-size:32px;margin:10px 0 4px}
-p{font-size:16px;line-height:1.4;margin:8px 0}
-ol{text-align:left;font-family:'Patrick Hand';font-size:19px;line-height:1.4;padding-left:22px}
-.btn{display:block;width:100%;box-sizing:border-box;border:0;border-radius:18px;padding:15px;font:inherit;font-size:18px;font-weight:600;color:#fff;background:#7aa86b;box-shadow:0 5px 0 #5b8a4e;margin-top:12px;text-decoration:none}
-small{color:#6b7a66;display:block;margin-top:14px;line-height:1.4}
-.hide{display:none}
+:root{
+  --sky1:#bfe3f2;--sky2:#fdf1dc;--grass:#8fbf7a;--grass2:#6fa463;--ink:#3d4a3a;--soft:#6b7a66;
+  --paper:#fffaf0;--cream:#fff4dd;--peach:#f6b89a;--rose:#e98f8f;--moss:#7aa86b;--sun:#f7d26a;--plum:#9a86b8;
+  --shadow:0 6px 0 rgba(61,74,58,.12),0 12px 24px rgba(61,74,58,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:Fredoka,system-ui,sans-serif;color:var(--ink)}
+body{background:linear-gradient(180deg,var(--sky1) 0%,#dff0f0 45%,var(--sky2) 100%);background-attachment:fixed;overflow-x:hidden;padding-bottom:110px}
+/* painted landscape */
+.scene{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.sun{position:absolute;top:40px;right:12%;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#fff6c9,var(--sun) 60%,transparent 72%);filter:blur(1px)}
+.cloud{position:absolute;background:#fff;border-radius:50px;opacity:.85;filter:blur(.5px);animation:drift linear infinite}
+.cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud:before{width:55%;height:160%;left:15%;top:-70%}.cloud:after{width:40%;height:130%;right:12%;top:-50%}
+.c1{width:150px;height:44px;top:90px;left:-160px;animation-duration:70s}
+.c2{width:100px;height:30px;top:190px;left:-120px;animation-duration:95s;animation-delay:-40s}
+.c3{width:200px;height:56px;top:40px;left:-220px;animation-duration:120s;animation-delay:-80s;opacity:.7}
+@keyframes drift{to{transform:translateX(calc(100vw + 260px))}}
+.hill{position:absolute;bottom:-60px;border-radius:50% 50% 0 0}
+.h1{left:-10%;width:80%;height:220px;background:var(--grass)}
+.h2{right:-15%;width:85%;height:180px;background:var(--grass2)}
+.h3{left:30%;width:60%;height:120px;background:#a6cf8c}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px 0}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.spirit{width:52px;height:52px;flex:none}
+.spirit .body{animation:bob 3s ease-in-out infinite;transform-origin:center bottom}
+@keyframes bob{50%{transform:translateY(-3px) scaleY(1.03)}}
+h1{font-family:"Patrick Hand",cursive;font-size:30px;margin:0;line-height:1}
+.sub{font-family:"Patrick Hand";color:var(--soft);font-size:17px}
+.card{background:var(--paper);border-radius:26px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow);border:2px solid rgba(61,74,58,.08);position:relative}
+.card.paper{background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(154,134,184,.12) 27px 28px),var(--paper)}
+.label{font-family:"Patrick Hand";font-size:18px;color:var(--soft)}
+.big{font-size:40px;font-weight:600;letter-spacing:-.5px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.pill{border-radius:18px;padding:12px;background:var(--cream)}
+.pill.in{background:#e3f1d8}.pill.out{background:#fbe0d6}
+.pill b{display:block;font-size:20px}
+.msg{font-family:"Patrick Hand";font-size:20px;line-height:1.25;margin-top:10px}
+/* goal jar */
+.goal{display:flex;gap:14px;align-items:center}
+.jar{width:84px;height:104px;flex:none;position:relative}
+.jar .glass{position:absolute;inset:14px 6px 0;border:3px solid var(--ink);border-radius:18px 18px 22px 22px;overflow:hidden;background:rgba(255,255,255,.6)}
+.jar .lid{position:absolute;top:0;left:14px;right:14px;height:16px;background:var(--peach);border:3px solid var(--ink);border-radius:8px}
+.jar .fill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#b5dba0,var(--moss));transition:height 1.2s cubic-bezier(.3,1.4,.5,1)}
+.jar .fill:before{content:"";position:absolute;top:-6px;left:-10%;width:120%;height:12px;background:#b5dba0;border-radius:50%;animation:wave 2.4s ease-in-out infinite}
+@keyframes wave{50%{transform:translateX(6%)}}
+.jar .emo{position:absolute;bottom:8px;width:100%;text-align:center;font-size:24px}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:14px;font-weight:600}
+.b-onTrack{background:#e3f1d8;color:#4b7a3c}.b-ahead{background:#dfe8fb;color:#4a5f9e}
+.b-behind{background:#fbe0d6;color:#a34f3c}.b-done{background:#fbefc7;color:#8a6a12}
+.bar{height:12px;background:#efe6d2;border-radius:99px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--moss),#b5dba0);border-radius:99px}
+/* forms */
+.seg{display:flex;background:var(--cream);border-radius:18px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;padding:10px;border-radius:14px;font:inherit;font-weight:600;color:var(--soft)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.seg button.on.inc{color:#4b7a3c}.seg button.on.exp{color:#a34f3c}
+label.f{display:block;margin-bottom:10px;font-family:"Patrick Hand";font-size:17px;color:var(--soft)}
+input,select,textarea{width:100%;font:inherit;font-size:17px;color:var(--ink);padding:12px 14px;border-radius:16px;border:2px solid #eadfc8;background:#fff;margin-top:4px;outline:none;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--moss)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:20px;padding:15px;font:inherit;font-size:18px;font-weight:600;color:#fff;background:var(--moss);box-shadow:0 5px 0 #5b8a4e;cursor:pointer;transition:transform .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #5b8a4e}
+.btn.peach{background:var(--peach);box-shadow:0 5px 0 #d08f71}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 5px 0 #e3d8c0}
+.scan{border:3px dashed #d9c9a6;border-radius:24px;padding:20px;text-align:center;background:var(--cream);cursor:pointer}
+.scan img{max-width:100%;max-height:220px;border-radius:16px;margin-top:10px}
+/* history */
+.tx{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:2px dotted #eadfc8}
+.tx:last-child{border:0}
+.ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex:none}
+.tx .t{flex:1;min-width:0}.tx .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx small{color:var(--soft)}
+.amt.in{color:#4b7a3c}.amt.out{color:#a34f3c}
+.x{border:0;background:none;color:#c9b99a;font-size:18px;cursor:pointer}
+.cats{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cat{display:flex;align-items:center;gap:8px;font-size:15px}.cat .bar{flex:1;margin:0}
+/* nav */
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:4px;background:rgba(255,250,240,.92);backdrop-filter:blur(10px);padding:8px;border-radius:28px;box-shadow:var(--shadow);z-index:5}
+nav button{border:0;background:none;font:inherit;font-size:12px;color:var(--soft);padding:6px 14px;border-radius:20px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:22px}
+nav button.on{background:var(--cream);color:var(--ink)}
+nav .add{background:var(--moss);color:#fff;width:58px;height:58px;border-radius:50%;margin-top:-26px;box-shadow:0 5px 0 #5b8a4e;font-size:30px;padding:0;justify-content:center}
+.view{display:none;animation:pop .35s ease}.view.on{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}}
+.toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-120px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:18px;transition:transform .35s;z-index:40;font-family:"Patrick Hand";font-size:18px}
+.toast.show{transform:translate(-50%,0)}
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:rgba(255,250,240,.6);z-index:35;font-family:"Patrick Hand";font-size:22px}
+.loading.hide{display:none}
+.leaf{display:inline-block;animation:spin 1.6s linear infinite;font-size:34px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;color:var(--soft);font-family:"Patrick Hand";font-size:18px;padding:16px}
+.tipdot{display:none;position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--plum);color:#fff;font-size:13px;font-weight:600;place-items:center;cursor:help;z-index:3;box-shadow:0 2px 0 rgba(0,0,0,.15);animation:pulse 2s ease-in-out infinite}
+body.tips .tipdot{display:grid}
+[data-tip]{position:relative}
+@keyframes pulse{50%{transform:scale(1.15)}}
+#tipBubble{position:fixed;z-index:20;background:#fffaf0;color:var(--ink);border:2px solid var(--plum);border-radius:16px;padding:10px 12px;font-family:'Patrick Hand';font-size:17px;line-height:1.25;box-shadow:var(--shadow);opacity:0;pointer-events:none;transform:translateY(4px);transition:.2s}
+#tipBubble.show{opacity:1;transform:none}
+#tutCard{display:none;background:#f3eefb;border-color:rgba(154,134,184,.35)}
+body.tips #tutCard{display:block}
+#tutCard ol{margin:8px 0 12px;padding-left:22px;font-family:'Patrick Hand';font-size:18px;line-height:1.35}
+.tiprow{display:flex!important;align-items:center;gap:10px}
+.tiprow input{width:22px!important;height:22px;margin:0;accent-color:var(--moss);-webkit-appearance:checkbox}
+.overlay{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(180deg,#bfe3f2,#fdf1dc)}
+.overlay.hide{display:none}
+.overlay .card{max-width:380px;width:100%;text-align:center}
+.overlay img{width:92px;height:92px;border-radius:22px;animation:bob 3s ease-in-out infinite}
+.overlay h2{font-family:"Patrick Hand",cursive;font-size:34px;margin:10px 0 4px}
+.overlay p{line-height:1.4;margin:8px 0 14px}
+.overlay ol{text-align:left;font-family:"Patrick Hand";font-size:19px;line-height:1.4;padding-left:22px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#3d4a3a;box-shadow:0 5px 0 #e3d8c0;border:2px solid #eadfc8}
+.gbtn:disabled{opacity:.6}
+.linkbtn{border:0;background:none;color:var(--soft);font:inherit;text-decoration:underline;margin-top:12px;cursor:pointer}
+.acct{font-size:15px;color:var(--soft);margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acct a,.acct button{color:var(--ink);font:inherit;font-size:14px;background:var(--cream);border:0;border-radius:12px;padding:6px 10px;text-decoration:none;cursor:pointer}
+.legal{font-size:13px;color:var(--soft);margin-top:14px}.legal a{color:var(--soft)}
 </style>
-</head><body><div class="wrap"><div class="card">
+<script>
+const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email openid';
+const SHEET_NAME = 'Meadow Money Data', FOLDER_NAME = 'Meadow Money Receipts';
+const HEAD = {
+  Transactions: ['id','date','type','amount','category','source','note','receiptUrl','createdAt'],
+  Goals: ['id','name','target','startDate','deadline','emoji','active'],
+  Settings: ['key','value']
+};
+const ls = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+let tokenClient, token = null, tokenExp = 0, tokenWaiters = [], userEmail = ls.get('mm_email') || '';
+let SS = null, DB = { Transactions: [], Goals: [], Settings: [] };
+function initAuth(){
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPES,
+    callback: r => {
+      if (r.error) { tokenWaiters.splice(0).forEach(w => w.rej(new Error(r.error))); return; }
+      token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in || 3600) - 120) * 1000;
+      tokenWaiters.splice(0).forEach(w => w.res(token));
+    },
+    error_callback: e => tokenWaiters.splice(0).forEach(w => w.rej(new Error(e.type === 'popup_closed' ? 'Sign-in was closed' : (e.message || e.type))))
+  });
+}
+function requestToken(prompt){
+  const p = new Promise((res, rej) => tokenWaiters.push({ res, rej }));
+  tokenClient.requestAccessToken({ prompt: prompt == null ? '' : prompt, login_hint: userEmail || undefined });
+  return p;
+}
+function getToken(){
+  if (token && Date.now() < tokenExp) return Promise.resolve(token);
+  if (tokenWaiters.length) return new Promise((res, rej) => tokenWaiters.push({ res, rej }));
+  return Promise.reject(new Error('NEED_SIGNIN'));
+}
+document.addEventListener('click', () => { if (tokenClient && token && Date.now() > tokenExp && !tokenWaiters.length) requestToken('').catch(()=>{}); }, true);
+async function gapi(url, opt = {}){
+  const t = await getToken();
+  const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + t }, opt.headers || {}) }));
+  if (r.status === 401) { token = null; throw new Error('Your session ended — tap again to continue 🌱'); }
+  if (!r.ok) { let m = r.status + ''; try { m = (await r.json()).error.message; } catch(e){} throw new Error(m); }
+  return r.status === 204 ? null : (r.headers.get('content-type') || '').includes('json') ? r.json() : r.text();
+}
+const DRIVE = 'https://www.googleapis.com/drive/v3', SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets';
+async function findFile(q){ const r = await gapi(DRIVE + '/files?fields=files(id,name)&q=' + encodeURIComponent(q + " and trashed=false")); return r.files[0]; }
+async function openSpreadsheet(){
+  let id = ls.get('mm_ss_' + userEmail);
+  if (id) { try { await gapi(SHEETS + '/' + id + '?fields=spreadsheetId'); } catch(e) { id = null; } }
+  if (!id) { const f = await findFile("name='" + SHEET_NAME + "' and mimeType='application/vnd.google-apps.spreadsheet'"); id = f && f.id; }
+  if (!id) {
+    const ss = await gapi(SHEETS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      properties: { title: SHEET_NAME }, sheets: Object.keys(HEAD).map(t => ({ properties: { title: t, gridProperties: { frozenRowCount: 1 } } })) }) });
+    id = ss.spreadsheetId;
+    await gapi(SHEETS + '/' + id + '/values:batchUpdate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      valueInputOption: 'RAW', data: Object.keys(HEAD).map(t => ({ range: t + '!A1', values: [HEAD[t]].concat(t === 'Settings' ? [['currency', '₱']] : []) })) }) });
+  }
+  ls.set('mm_ss_' + userEmail, id); SS = id;
+}
+async function loadAll(){
+  const r = await gapi(SHEETS + '/' + SS + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&' + Object.keys(HEAD).map(t => 'ranges=' + encodeURIComponent(t + '!A2:I')).join('&'));
+  Object.keys(HEAD).forEach((t, i) => {
+    const rows = (r.valueRanges[i].values || []).filter(row => row[0] !== undefined && row[0] !== '');
+    DB[t] = rows.map(row => { const o = {}; HEAD[t].forEach((k, j) => o[k] = row[j] === undefined ? '' : row[j]); return o; });
+  });
+}
+async function saveTable(t){
+  const values = DB[t].map(o => HEAD[t].map(k => o[k] === undefined ? '' : o[k]));
+  await gapi(SHEETS + '/' + SS + '/values/' + encodeURIComponent(t + '!A2:I') + ':clear', { method: 'POST' });
+  if (values.length) await gapi(SHEETS + '/' + SS + '/values/' + encodeURIComponent(t + '!A2') + '?valueInputOption=RAW', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ values }) });
+}
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const API = {
+  async getData(){ await loadAll(); return buildData(); },
+  async addTransaction(t){
+    if (!t || !(Number(t.amount) > 0)) throw new Error('Amount must be greater than zero.');
+    DB.Transactions.push({ id: uuid(), date: t.date || todayStr(), type: t.type, amount: Number(t.amount), category: t.category || 'Other', source: t.source || '', note: t.note || '', receiptUrl: t.receiptUrl || '', createdAt: new Date().toISOString() });
+    await saveTable('Transactions'); return buildData();
+  },
+  async deleteTransaction(id){ DB.Transactions = DB.Transactions.filter(x => x.id !== id); await saveTable('Transactions'); return buildData(); },
+  async saveGoal(g){
+    if (!g.name || !(Number(g.target) > 0) || !g.deadline) throw new Error('Goal needs a name, target and deadline.');
+    const row = { id: g.id || uuid(), name: g.name, target: Number(g.target), startDate: g.startDate || todayStr(), deadline: g.deadline, emoji: g.emoji || '🌱', active: true };
+    DB.Goals = DB.Goals.filter(x => x.id !== row.id).concat([row]); await saveTable('Goals'); return buildData();
+  },
+  async deleteGoal(id){ DB.Goals = DB.Goals.filter(x => x.id !== id); await saveTable('Goals'); return buildData(); },
+  async saveSetting(key, value){
+    const s = DB.Settings.find(x => x.key === key); if (s) s.value = value; else DB.Settings.push({ key, value });
+    await saveTable('Settings'); return buildData();
+  },
+  async scanReceipt(dataUrl, fileName){
+    const blob = await (await fetch(dataUrl)).blob();
+    let folder = ls.get('mm_folder_' + userEmail);
+    if (folder) { try { await gapi(DRIVE + '/files/' + folder + '?fields=id,trashed').then(f => { if (f.trashed) folder = null; }); } catch(e) { folder = null; } }
+    if (!folder) { const f = await findFile("name='" + FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder'"); folder = f && f.id; }
+    if (!folder) folder = (await gapi(DRIVE + '/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }) })).id;
+    ls.set('mm_folder_' + userEmail, folder);
+    const name = fileName || ('receipt_' + Date.now() + '.jpg');
+    const saved = await upload({ name, parents: [folder] }, blob, '&fields=id,webViewLink');
+    let text = '';
+    try {
+      const doc = await upload({ name: 'ocr_tmp_' + Date.now(), mimeType: 'application/vnd.google-apps.document' }, blob, '&ocrLanguage=en&fields=id');
+      text = await gapi(DRIVE + '/files/' + doc.id + '/export?mimeType=text/plain');
+      gapi(DRIVE + '/files/' + doc.id, { method: 'DELETE' }).catch(()=>{});
+    } catch(e) { text = ''; }
+    const p = parseReceipt(String(text || '')); p.receiptUrl = saved.webViewLink || ''; return p;
+  }
+};
+function upload(meta, blob, extra){
+  const fd = new FormData();
+  fd.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+  fd.append('file', blob);
+  return gapi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart' + (extra || ''), { method: 'POST', body: fd });
+}
+function parseReceipt(text){
+  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const money = /(\d{1,3}(?:[,\s]\d{3})*(?:\.\d{2})|\d+\.\d{2})/g, toNum = s => Number(String(s).replace(/[,\s]/g, ''));
+  let amount = 0;
+  lines.filter(l => /(grand\s*total|total\s*due|amount\s*due|total|balance\s*due)/i.test(l) && !/sub\s*total/i.test(l))
+    .forEach(l => (l.match(money) || []).forEach(m => { amount = Math.max(amount, toNum(m)); }));
+  if (!amount) (text.match(money) || []).forEach(m => { const n = toNum(m); if (n < 1000000) amount = Math.max(amount, n); });
+  let date = '';
+  const d = text.match(/(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})|(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/);
+  if (d) { const dt = new Date(d[0].replace(/-/g, '/')); if (!isNaN(dt)) date = new Date(dt - dt.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); }
+  const source = (lines.find(l => /[a-z]{3,}/i.test(l) && !/receipt|invoice|official/i.test(l)) || '').slice(0, 40);
+  const map = [['Food',/restaurant|cafe|coffee|jollibee|mcdo|starbucks|food|grill|bakery|kitchen/i],['Groceries',/mart|grocery|supermarket|puregold|sm market|robinsons|savemore|7-eleven/i],['Transport',/grab|gas|petron|shell|caltex|fuel|toll|taxi|parking/i],['Bills',/meralco|water|internet|pldt|globe|smart|converge|electric/i],['Health',/pharmacy|mercury|watsons|clinic|hospital|drug/i],['Shopping',/mall|shop|store|lazada|shopee|uniqlo/i]];
+  let category = 'Other'; for (const [c, r] of map) if (r.test(text)) { category = c; break; }
+  return { amount, date: date || todayStr(), source, category };
+}
+function buildData(){
+  const tx = DB.Transactions.map(t => Object.assign({}, t, { date: normDate(t.date), amount: Number(t.amount) || 0 }))
+    .sort((a, b) => (String(b.date) + b.createdAt).localeCompare(String(a.date) + a.createdAt));
+  const settings = {}; DB.Settings.forEach(s => settings[s.key] = s.value);
+  const ym = todayStr().slice(0, 7); let inc = 0, exp = 0, mInc = 0, mExp = 0; const byCat = {};
+  tx.forEach(t => { const a = t.amount;
+    if (t.type === 'income') { inc += a; if (t.date.startsWith(ym)) mInc += a; }
+    else { exp += a; if (t.date.startsWith(ym)) { mExp += a; byCat[t.category] = (byCat[t.category] || 0) + a; } } });
+  const goals = DB.Goals.filter(g => g.active !== false && g.active !== 'FALSE').map(g0 => {
+    const g = Object.assign({}, g0, { startDate: normDate(g0.startDate), deadline: normDate(g0.deadline) });
+    const start = new Date(g.startDate), end = new Date(g.deadline), now = new Date(todayStr());
+    const saved = tx.filter(t => t.date >= g.startDate).reduce((s, t) => s + (t.type === 'income' ? 1 : -1) * t.amount, 0);
+    const totalDays = Math.max(1, (end - start) / 864e5), elapsed = Math.min(totalDays, Math.max(0, (now - start) / 864e5));
+    const daysLeft = Math.max(0, Math.ceil((end - now) / 864e5)), target = Number(g.target), expected = target * (elapsed / totalDays);
+    const diff = saved - expected, remaining = Math.max(0, target - saved), perDay = daysLeft ? remaining / daysLeft : remaining;
+    let status = 'onTrack'; if (saved >= target) status = 'done'; else if (diff < -target * .05) status = 'behind'; else if (diff > target * .05) status = 'ahead';
+    return Object.assign(g, { saved, expected, diff, daysLeft, remaining, perDay, perWeek: perDay * 7, progress: Math.min(1, Math.max(0, saved / target)), status });
+  });
+  return { tx, goals, settings, summary: { balance: inc - exp, income: inc, expense: exp, monthIncome: mInc, monthExpense: mExp, monthNet: mInc - mExp, byCat } };
+}
+function normDate(v){
+  if (typeof v === 'number') { const d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 10); }
+  return String(v || '').slice(0, 10);
+}
+async function signIn(prompt){
+  const btn = document.getElementById('signinBtn'); if (btn) btn.disabled = true;
+  try {
+    await requestToken(prompt);
+    const me = await gapi('https://www.googleapis.com/oauth2/v3/userinfo');
+    if (me.email !== userEmail) { userEmail = me.email; ls.set('mm_email', userEmail); }
+    document.getElementById('who').textContent = userEmail;
+    document.getElementById('loading').classList.remove('hide');
+    await openSpreadsheet();
+    document.getElementById('signin').classList.add('hide');
+    render(await call('getData'));
+  } catch (e) {
+    document.getElementById('loading').classList.add('hide');
+    toast('🌧️ ' + e.message);
+  } finally { if (btn) btn.disabled = false; }
+}
+function signOut(){
+  try { if (token) google.accounts.oauth2.revoke(token, () => {}); } catch(e){}
+  token = null; userEmail = ''; ls.del('mm_email'); location.reload();
+}
+function bootSignin(){
+  const el = document.getElementById('signin'); el.classList.remove('hide');
+  document.getElementById('signinBtn').innerHTML = '<span style="font-size:20px;font-weight:700;color:#4285f4">G</span> ' + (userEmail ? 'Continue as ' + userEmail : 'Sign in with Google');
+  document.getElementById('switchAcct').style.display = userEmail ? 'block' : 'none';
+}
+function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth(); bootSignin(); }
+</script>
+<script src="https://accounts.google.com/gsi/client" async onload="gisReady()"></script>
+</head>
+<body>
+<div class="scene"><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="hill h1"></div><div class="hill h3"></div><div class="hill h2"></div></div>
+<div class="loading" id="loading"><div><span class="leaf">🍃</span><br>gathering acorns…</div></div>
+<div class="toast" id="toast"></div>
+<div class="overlay hide" id="signin"><div class="card">
   <img src="icon-512.png" alt="">
-  <h1>Meadow Money</h1>
-  <div id="go">
-    <p>Opening your meadow… 🌱</p>
-    <a class="btn" id="open" href="https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec">Open Meadow Money</a>
-    <small>First time? Sign in with your Google account, tap <b>Advanced → Go to Meadow Money</b>, then <b>Allow</b>.<br>Seeing an error? Open this page in a private/incognito tab signed into just one Google account.</small>
-  </div>
-  <div id="gate" class="hide">
-    <p>This app needs a real browser so Google can sign you in safely. Messenger, Facebook and Instagram browsers can't do that.</p>
-    <ol><li>Tap <b>⋯</b> or the share icon</li><li>Choose <b>Open in Safari</b> or <b>Open in Chrome</b></li><li>Sign in with your Google account</li></ol>
-    <button class="btn" id="copy">Copy link</button>
-    <p id="copied" class="hide">Copied! Paste it in Safari or Chrome 🌱</p>
-  </div>
+  <h2>Meadow Money</h2>
+  <p>Your cozy savings &amp; income tracker. Your records are saved privately in <b>your own Google Drive</b>.</p>
+  <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
+  <button class="linkbtn" id="switchAcct" onclick="signIn('select_account')">Use a different Google account</button>
+  <div class="legal"><a href="privacy.html">Privacy policy</a></div>
+</div></div>
+<div class="overlay hide" id="gate"><div class="card">
+  <img src="icon-512.png" alt="">
+  <h2>Meadow Money</h2>
+  <p>This app needs a real browser so Google can sign you in safely. Messenger, Facebook and Instagram browsers can't do that.</p>
+  <ol><li>Tap <b>⋯</b> or the share icon</li><li>Choose <b>Open in Safari</b> or <b>Open in Chrome</b></li><li>Sign in with your Google account</li></ol>
+  <button class="btn" onclick="var l=location.href;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).catch(function(){prompt('Copy this link:',l)}).then(function(){document.getElementById('copied').style.display='block'})">Copy link</button>
+  <p id="copied" style="display:none">Copied! Paste it in Safari or Chrome 🌱</p>
 </div></div>
 <script>
-var URLX='https://script.google.com/macros/s/AKfycbxPG4W3P-3bhlCTt8Un1NN_epUom7oLU3u7bAq4vmx2OIHYv7IhrPXqB27YN-BzTNzdtA/exec';
-var ua=navigator.userAgent||'';
-var inApp=/FBAN|FBAV|FB_IAB|Messenger|Orca-Android|Instagram|Line\/|Twitter|MicroMessenger|TikTok|Snapchat/i.test(ua);
-if(inApp){document.getElementById('go').className='hide';document.getElementById('gate').className='';
-  document.getElementById('copy').onclick=function(){var l=location.href;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).catch(function(){prompt('Copy this link:',l)}).then(function(){document.getElementById('copied').className=''})};
-}else{setTimeout(function(){location.href=URLX},900);}
+window.__inApp=/FBAN|FBAV|FB_IAB|Messenger|Orca-Android|Instagram|Line\/|Twitter|MicroMessenger|TikTok|Snapchat/i.test(navigator.userAgent||'');
+if(window.__inApp)document.getElementById('gate').classList.remove('hide');
+</script>
+<div class="wrap">
+  <header>
+    <svg class="spirit" viewBox="0 0 60 60"><g class="body">
+      <path d="M30 6c4 6 3 9 0 12-3-3-4-6 0-12z" fill="#8fbf7a"/>
+      <ellipse cx="30" cy="38" rx="20" ry="18" fill="#fffaf0" stroke="#3d4a3a" stroke-width="2.5"/>
+      <circle cx="23" cy="36" r="2.6" fill="#3d4a3a"/><circle cx="37" cy="36" r="2.6" fill="#3d4a3a"/>
+      <ellipse cx="19" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/><ellipse cx="41" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/>
+      <path d="M27 42q3 3 6 0" stroke="#3d4a3a" stroke-width="2" fill="none" stroke-linecap="round"/></g></svg>
+    <div><h1>Meadow Money</h1><div class="sub" id="greet">hello there ✿</div></div>
+  </header>
+  <section class="view on" id="v-home">
+    <div class='card' id='tutCard'>
+      <div class='label'>welcome to your meadow ✿ quick tour</div>
+      <ol>
+        <li>Tap <b>＋</b> to add money coming in or going out.</li>
+        <li>Snap a receipt with 📷 and the total fills in for you.</li>
+        <li>Plant a savings goal in <b>🌱 Goals</b>. Your jar shows if you are on track.</li>
+        <li>Hover or tap the purple <b>?</b> dots any time for help.</li>
+      </ol>
+      <button class='btn ghost' onclick='setTips(false)'>Got it, hide tips</button>
+    </div>
+    <div class="card">
+      <div class='label' data-tip='Your balance: all the income you recorded minus all your expenses.'>money in your meadow</div>
+      <div class="big" id="balance">—</div>
+      <div class="row" style="margin-top:12px">
+        <div class="pill in"><small>in this month</small><b id="mIn">—</b></div>
+        <div class="pill out"><small>out this month</small><b id="mOut">—</b></div>
+      </div>
+      <div class="msg" id="spiritMsg"></div>
+    </div>
+    <div data-tip='Each jar is a savings goal. It fills as you save and says if you are ahead, on track or behind.'><div id="homeGoals"></div></div>
+    <div class="card"><div class="label">where it went this month</div><div class="cats" id="cats"></div></div>
+  </section>
+  <section class="view" id="v-add">
+    <div class="card">
+      <div class="seg" data-tip='Switch between money going out (expense) and money coming in (income).'><button class="on exp" data-t="expense">🍂 Expense</button><button class="inc" data-t="income">🌸 Income</button></div>
+      <div id="scanBox" data-tip='Tap to photograph a receipt. The total, date and store are filled in for you, just double-check them.' class="scan" onclick="document.getElementById('cam').click()">
+        <div style="font-size:34px">📷</div><b>Snap a receipt</b><br><small>I'll read the total for you</small>
+        <img id="preview" hidden>
+      </div>
+      <input type="file" id="cam" accept="image/*" capture="environment" hidden>
+      <div style="height:12px"></div>
+      <label class="f">Amount<input id="fAmount" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></label>
+      <div class="row">
+        <label class="f">Date<input id="fDate" type="date"></label>
+        <label class="f">Category<select id="fCat"></select></label>
+      </div>
+      <label class="f" id="srcLabel">Where / merchant<input id="fSource" placeholder="e.g. Puregold"></label>
+      <label class="f">Note<input id="fNote" placeholder="optional little note"></label>
+      <input type="hidden" id="fReceipt">
+      <button class="btn" id="saveTx">Tuck it away ✿</button>
+    </div>
+  </section>
+  <section class="view" id="v-hist">
+    <div class="card paper">
+      <div class="seg" id="histFilter" data-tip='Filter your history. Tap ✕ on an entry to remove it.'><button class="on" data-f="all">All</button><button data-f="income">Income</button><button data-f="expense">Expenses</button></div>
+      <div id="txList"></div>
+    </div>
+  </section>
+  <section class="view" id="v-goals">
+    <div id="goalList"></div>
+    <div class="card">
+      <div class="label" id="goalFormTitle">plant a new savings goal 🌱</div>
+      <label class="f" data-tip='Name a goal, set a target and deadline. Income minus spending from the start date counts toward it.'>Goal name<input id="gName" placeholder="Trip to Kyoto"></label>
+      <div class="row">
+        <label class="f">Target<input id="gTarget" type="number" inputmode="decimal"></label>
+        <label class="f">Emoji<input id="gEmoji" value="🌱" maxlength="2"></label>
+      </div>
+      <div class="row">
+        <label class="f">Start counting from<input id="gStart" type="date"></label>
+        <label class="f">Deadline<input id="gEnd" type="date"></label>
+      </div>
+      <input type="hidden" id="gId">
+      <button class="btn peach" id="saveGoal">Plant goal</button>
+      <div style="height:14px"></div>
+      <label class="f">Currency symbol<input id="currency" maxlength="4"></label>
+      <label class="f tiprow"><input type="checkbox" id="tipsToggle" onchange="setTips(this.checked)"> Show tutorial tips</label>
+      <div class="acct">Signed in as <b id="who"></b> <a id="sheetLink" target="_blank" rel="noopener">📄 My data sheet</a><button onclick="signOut()">Sign out</button></div>
+      <div class="legal"><a href="privacy.html">Privacy policy</a></div>
+    </div>
+  </section>
+</div>
+<nav>
+  <button class="on" data-v="home"><span>🏡</span>Home</button>
+  <button data-v="hist"><span>📜</span>History</button>
+  <button class="add" data-v="add">＋</button>
+  <button data-v="goals"><span>🌱</span>Goals</button>
+</nav>
+<script>
+const CATS={expense:['Food','Groceries','Transport','Bills','Shopping','Health','Fun','Home','Other'],
+            income:['Salary','Freelance','Business','Side hustle','Gift','Refund','Other']};
+const ICON={Food:'🍙',Groceries:'🧺',Transport:'🚲',Bills:'💡',Shopping:'🛍️',Health:'🌿',Fun:'🎐',Home:'🏡',Other:'🍃',
+            Salary:'💼',Freelance:'🖌️',Business:'🏪','Side hustle':'✨',Gift:'🎁',Refund:'↩️'};
+let D=null,type='expense',filter='all';
+const $=id=>document.getElementById(id);
+const fmt=n=>(D?.settings?.currency||'₱')+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function call(fn,...args){
+  $('loading').classList.remove('hide');
+  return API[fn](...args).then(r=>{$('loading').classList.add('hide');if(SS)$('sheetLink').href='https://docs.google.com/spreadsheets/d/'+SS;return r},
+    e=>{$('loading').classList.add('hide');if(e.message==='NEED_SIGNIN'){bootSignin();toast('🌱 Please sign in again');}else toast('🌧️ '+e.message);throw e});
+}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v&&v!=='add'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+function setType(t){type=t;
+  document.querySelectorAll('#v-add .seg button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('fCat').innerHTML=CATS[t].map(c=>`<option>${c}</option>`).join('');
+  $('srcLabel').firstChild.textContent=t==='income'?'Income stream / from':'Where / merchant';
+  $('scanBox').style.display=t==='income'?'none':'block';
+  $('saveTx').className='btn'+(t==='income'?' peach':'');
+}
+document.querySelectorAll('#v-add .seg button').forEach(b=>b.onclick=()=>setType(b.dataset.t));
+function render(d){
+  D=d;const s=d.summary;
+  const h=new Date().getHours();
+  $('greet').textContent=(h<12?'good morning':h<18?'good afternoon':'good evening')+' ✿';
+  $('balance').textContent=fmt(s.balance);$('mIn').textContent=fmt(s.monthIncome);$('mOut').textContent=fmt(s.monthExpense);
+  $('currency').value=d.settings.currency||'₱';
+  const behind=d.goals.filter(g=>g.status==='behind');
+  $('spiritMsg').textContent=!d.goals.length?'Plant a savings goal and I will keep watch over it 🌱'
+    :behind.length?`A little behind on "${behind[0].name}" — about ${fmt(behind[0].perDay)} a day gets us back on track 🍂`
+    :s.monthNet>=0?'The meadow is thriving! Every goal is on track 🌸':'Spending outgrew income this month — gentle steps 🍃';
+  const gHTML=d.goals.map(goalCard).join('');
+  $('homeGoals').innerHTML=gHTML;
+  $('goalList').innerHTML=gHTML||'<div class="card empty">No goals yet — plant your first one below 🌱</div>';
+  const cats=Object.entries(s.byCat).sort((a,b)=>b[1]-a[1]);const max=cats[0]?.[1]||1;
+  $('cats').innerHTML=cats.length?cats.map(([c,v])=>`<div class="cat">${ICON[c]||'🍃'} <span style="width:80px">${esc(c)}</span><div class="bar"><i style="width:${v/max*100}%;background:linear-gradient(90deg,var(--peach),#fbd3bf)"></i></div><b>${fmt(v)}</b></div>`).join(''):'<div class="empty">No spending yet this month ✨</div>';
+  renderHist();
+  applyTips(d.settings.tips!=='off');initTips();
+}
+function goalCard(g){
+  const words={onTrack:'on track',ahead:'ahead!',behind:'a bit behind',done:'reached! 🎉'};
+  const note=g.status==='done'?`You saved ${fmt(g.saved)} — beautiful work.`
+    :g.status==='behind'?`You're ${fmt(-g.diff)} short of where you'd want to be. Save ~${fmt(g.perWeek)}/week to catch up.`
+    :`${fmt(g.remaining)} to go · ~${fmt(g.perWeek)}/week · ${g.daysLeft} days left`;
+  return `<div class="card"><div class="goal">
+    <div class="jar"><div class="lid"></div><div class="glass"><div class="fill" style="height:${g.progress*100}%"></div><div class="emo">${esc(g.emoji)}</div></div></div>
+    <div style="flex:1;min-width:0"><b style="font-size:19px">${esc(g.name)}</b> <span class="badge b-${g.status}">${words[g.status]}</span>
+      <div class="bar"><i style="width:${g.progress*100}%"></i></div>
+      <div><b>${fmt(g.saved)}</b> <small>of ${fmt(g.target)} · by ${g.deadline}</small></div>
+      <div class="msg" style="font-size:17px;margin-top:4px">${note}</div>
+      <div style="margin-top:6px"><button class="x" onclick="editGoal('${g.id}')">✏️ edit</button><button class="x" onclick="delGoal('${g.id}')">🗑️ remove</button></div>
+    </div></div></div>`;
+}
+function renderHist(){
+  const list=D.tx.filter(t=>filter==='all'||t.type===filter);
+  $('txList').innerHTML=list.length?list.map(t=>`<div class="tx">
+    <div class="ico" style="background:${t.type==='income'?'#e3f1d8':'#fbe0d6'}">${ICON[t.category]||'🍃'}</div>
+    <div class="t"><b>${esc(t.source||t.category)}</b><small>${t.date} · ${esc(t.category)}${t.note?' · '+esc(t.note):''}${t.receiptUrl?` · <a href="${t.receiptUrl}" target="_blank">receipt</a>`:''}</small></div>
+    <div class="amt ${t.type==='income'?'in':'out'}"><b>${t.type==='income'?'+':'−'}${fmt(t.amount)}</b></div>
+    <button class="x" onclick="delTx('${t.id}')">✕</button></div>`).join(''):'<div class="empty">Nothing here yet 🍃</div>';
+}
+document.querySelectorAll('#histFilter button').forEach(b=>b.onclick=()=>{filter=b.dataset.f;
+  document.querySelectorAll('#histFilter button').forEach(x=>x.classList.toggle('on',x===b));renderHist()});
+$('cam').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const dataUrl=await shrink(f,1600);
+  $('preview').src=dataUrl;$('preview').hidden=false;
+  const r=await call('scanReceipt',dataUrl,f.name);
+  if(r.amount)$('fAmount').value=r.amount.toFixed(2);
+  $('fDate').value=r.date;$('fSource').value=r.source||'';$('fReceipt').value=r.receiptUrl;
+  if(CATS.expense.includes(r.category))$('fCat').value=r.category;
+  toast(r.amount?'✨ Found '+fmt(r.amount)+' — double-check it':'📷 Saved! Type the amount in');
+};
+function shrink(file,max){return new Promise(res=>{const img=new Image();img.onload=()=>{
+  const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');
+  c.width=img.width*k;c.height=img.height*k;c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  res(c.toDataURL('image/jpeg',.85));};img.src=URL.createObjectURL(file);});}
+$('saveTx').onclick=async()=>{
+  const t={type,amount:$('fAmount').value,date:$('fDate').value,category:$('fCat').value,source:$('fSource').value,note:$('fNote').value,receiptUrl:$('fReceipt').value};
+  if(!(Number(t.amount)>0))return toast('Add an amount first 🌼');
+  render(await call('addTransaction',t));
+  ['fAmount','fSource','fNote','fReceipt'].forEach(i=>$(i).value='');$('preview').hidden=true;$('cam').value='';
+  toast(type==='income'?'🌸 Income planted!':'🍂 Expense tucked away');go('home');
+};
+async function delTx(id){if(confirm('Remove this entry?'))render(await call('deleteTransaction',id))}
+$('saveGoal').onclick=async()=>{
+  const g={id:$('gId').value,name:$('gName').value,target:$('gTarget').value,emoji:$('gEmoji').value,startDate:$('gStart').value,deadline:$('gEnd').value};
+  render(await call('saveGoal',g));['gId','gName','gTarget'].forEach(i=>$(i).value='');
+  $('goalFormTitle').textContent='plant a new savings goal 🌱';toast('🌱 Goal planted!');
+};
+function editGoal(id){const g=D.goals.find(x=>x.id===id);go('goals');
+  $('gId').value=g.id;$('gName').value=g.name;$('gTarget').value=g.target;$('gEmoji').value=g.emoji;$('gStart').value=g.startDate;$('gEnd').value=g.deadline;
+  $('goalFormTitle').textContent='tending to '+g.name+' ✏️';}
+async function delGoal(id){if(confirm('Remove this goal?'))render(await call('deleteGoal',id))}
+$('currency').onchange=async e=>render(await call('saveSetting','currency',e.target.value||'₱'));
+let tipsOn=true;
+function applyTips(on){tipsOn=on;document.body.classList.toggle('tips',on);$('tipsToggle').checked=on;if(!on)hideTip();}
+function initTips(){document.querySelectorAll('[data-tip]').forEach(el=>{if(el.querySelector(':scope>.tipdot'))return;const d=document.createElement('span');d.className='tipdot';d.textContent='?';d.onclick=e=>{e.stopPropagation();e.preventDefault();showTip(el)};el.appendChild(d);el.addEventListener('mouseenter',()=>{if(tipsOn)showTip(el)});el.addEventListener('mouseleave',hideTip);});}
+function showTip(el){const b=$('tipBubble');const bw=Math.min(260,innerWidth-24);b.style.width=bw+'px';b.textContent=el.dataset.tip;const r=el.getBoundingClientRect();let x=Math.max(12,Math.min(innerWidth-bw-12,r.left+r.width/2-bw/2));let y=r.top-b.offsetHeight-12;if(y<8)y=r.bottom+12;b.style.left=x+'px';b.style.top=y+'px';b.classList.add('show');clearTimeout(showTip.t);showTip.t=setTimeout(hideTip,5000);}
+function hideTip(){$('tipBubble').classList.remove('show')}
+async function setTips(on){applyTips(on);try{render(await call('saveSetting','tips',on?'on':'off'))}catch(e){}}
+setType('expense');$('fDate').value=today();$('gStart').value=today();
+$('loading').classList.add('hide');
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
-</body></html>
+<div id="tipBubble"></div>
+</body>
+</html>
