@@ -414,6 +414,7 @@ async function silentRefresh(){ if (silentRefresh.busy || !SS) return; silentRef
 </head>
 <body>
 <div id="splash"><svg viewBox="0 0 60 60"><path d="M30 6c4 6 3 9 0 12-3-3-4-6 0-12z" fill="#8fbf7a"/><ellipse cx="30" cy="38" rx="20" ry="18" fill="#fffaf0" stroke="#3d4a3a" stroke-width="2.5"/><circle cx="23" cy="36" r="2.6" fill="#3d4a3a"/><circle cx="37" cy="36" r="2.6" fill="#3d4a3a"/><ellipse cx="19" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/><ellipse cx="41" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/><path d="M27 42q3 3 6 0" stroke="#3d4a3a" stroke-width="2" fill="none" stroke-linecap="round"/></svg><b>Meadow Money</b><small>tending your meadow…</small></div>
+<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.classList.add('gone')},4000)</script>
 <div class="scene"><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="hill h1"></div><div class="hill h3"></div><div class="hill h2"></div></div>
 <div class="loading" id="loading"><div><span class="leaf">🍃</span><br>gathering acorns…</div></div>
 <div class="toast" id="toast"></div>
@@ -686,7 +687,7 @@ let tipsOn=true;
 function applyTips(on){tipsOn=on;document.body.classList.toggle('tips',on);$('tipsToggle').checked=on;if(!on)hideTip();}
 function initTips(){document.querySelectorAll('[data-tip]').forEach(el=>{if(el.querySelector(':scope>.tipdot'))return;const d=document.createElement('span');d.className='tipdot';d.textContent='?';d.onclick=e=>{e.stopPropagation();e.preventDefault();showTip(el)};el.appendChild(d);el.addEventListener('mouseenter',()=>{if(tipsOn)showTip(el)});el.addEventListener('mouseleave',hideTip);});}
 function showTip(el){const b=$('tipBubble');const bw=Math.min(260,innerWidth-24);b.style.width=bw+'px';b.textContent=el.dataset.tip;const r=el.getBoundingClientRect();let x=Math.max(12,Math.min(innerWidth-bw-12,r.left+r.width/2-bw/2));let y=r.top-b.offsetHeight-12;if(y<8)y=r.bottom+12;b.style.left=x+'px';b.style.top=y+'px';b.classList.add('show');clearTimeout(showTip.t);showTip.t=setTimeout(hideTip,5000);}
-function hideTip(){$('tipBubble').classList.remove('show')}
+function hideTip(){const b=$('tipBubble');if(b)b.classList.remove('show')}
 async function setTips(on){applyTips(on);try{render(await call('saveSetting','tips',on?'on':'off'))}catch(e){}}
 /* ===== cards (last 4 digits only) ===== */
 function getCards(){try{const c=JSON.parse((D&&D.settings&&D.settings.cards)||'[]');return Array.isArray(c)?c:[]}catch(e){return []}}
@@ -888,10 +889,10 @@ syncSoundUI();
 maybeShowInstall();
 setType('expense');$('fDate').value=today();$('gStart').value=today();
 $('loading').classList.add('hide');
-(function bootFromCache(){ if(window.__inApp||!userEmail) return; let c=null; try{c=JSON.parse(ls.get('mm_cache_'+userEmail)||'null')}catch(e){}
+(function bootFromCache(){ try { if(window.__inApp||!userEmail) return; let c=null; try{c=JSON.parse(ls.get('mm_cache_'+userEmail)||'null')}catch(e){}
   if(!c||!c.SS||!c.DB) return; SS=c.SS; DB=Object.assign({Transactions:[],Goals:[],Settings:[]},c.DB);
   $('who').textContent=userEmail; window.__booted=true; render(buildData()); $('sheetLink').href='https://docs.google.com/spreadsheets/d/'+SS;
-  setTimeout(()=>{if(window.maybeShowInstall)maybeShowInstall()},600); })();
+  setTimeout(()=>{if(window.maybeShowInstall)maybeShowInstall()},600); } catch(e) { console.error(e); } })();
 (function(){const v=(location.hash||'').slice(1);if(v&&v!=='home'&&document.getElementById('v-'+v)){try{history.replaceState({v:'home'},'','#home');}catch(e){}go(v);}})();
 setTimeout(()=>{const sp=$('splash');sp.classList.add('gone');setTimeout(()=>sp.remove(),600);},window.__booted?650:900);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
