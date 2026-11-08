@@ -159,7 +159,7 @@ body.tips #tutCard{display:block}
 .scan.drag{border-color:var(--moss);background:#eef6e6}
 .dropnote{display:block;margin-top:10px;color:var(--soft)}
 @media (hover:none){.dropnote{display:none}}
-html,body{overflow-x:hidden;max-width:100%}
+html,body{overflow-x:clip;max-width:100%}
 body{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 .wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-top:max(18px,calc(env(safe-area-inset-top) + 12px))}
 .row>*{min-width:0}
@@ -191,7 +191,7 @@ html[data-theme=light]{color-scheme:light}html[data-theme=dark]{color-scheme:dar
 #splash b{font-family:"Patrick Hand",cursive;font-size:36px;color:var(--ink)}
 #splash small{font-family:"Patrick Hand";color:var(--soft);font-size:18px}
 html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
-body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent}
+body{-webkit-tap-highlight-color:transparent}
 button,nav,.seg,.sbtn,.badge,.crow,.label,h1,.sub,img,svg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button,a,.crow,.scan,label{touch-action:manipulation}
 nav button{min-width:58px;padding:6px 10px}
