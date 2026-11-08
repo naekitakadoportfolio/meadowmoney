@@ -220,6 +220,46 @@ nav button{min-width:58px;padding:6px 10px}
 .pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px;margin-top:6px}.pad button{height:72px;border-radius:50%;border:0;background:var(--paper);color:var(--ink);font:inherit;font-size:26px;font-weight:600;box-shadow:var(--shadow);cursor:pointer}
 .pad button.t{background:none;box-shadow:none;font-size:24px}
 .shake{animation:shake .4s}@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* ===== UI v2 ===== */
+:root{--soft:#566552}
+html[data-theme=dark]{--soft:#b9c7b3}
+body,input,select,button,.label,.sub,label.f,.empty,.msg{font-family:Fredoka,system-ui,sans-serif}
+h1,h2,.label,.msg,.big{font-family:"Patrick Hand",cursive}
+.label{letter-spacing:.2px}
+#streakBadge{display:inline-block;margin-left:8px;background:#ffe3c2;color:#a5521b;border-radius:12px;padding:2px 9px;font-size:14px;font-weight:600;vertical-align:middle;white-space:nowrap}
+#greet{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.homeMore>summary,.gmore>summary{cursor:pointer;list-style:none;font-size:15px;color:var(--soft);padding:6px 2px 12px;text-align:center}
+.gmore>summary{text-align:left;padding:4px 0;font-weight:600;color:var(--ink)}
+.homeMore>summary::-webkit-details-marker,.gmore>summary::-webkit-details-marker{display:none}
+.x{display:inline-flex;align-items:center;gap:4px;background:var(--cream,#f6eedd);color:var(--ink);border-radius:12px;padding:6px 10px;margin:2px 4px 2px 0;font-size:14px;min-height:32px}
+.x:active{transform:scale(.94)}
+.amtWrap{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:6px 0 10px}
+.amtWrap span{font-size:30px;color:var(--soft);font-family:"Patrick Hand"}
+.amtWrap input{font-size:44px;text-align:center;border:0;background:transparent;width:70%;font-family:"Patrick Hand";padding:4px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
+.chip{border:2px solid transparent;border-radius:16px;padding:7px 12px;font:inherit;font-size:14px;cursor:pointer;background:var(--cc,#eee)!important;color:#33402f!important;box-shadow:none!important}
+.chip.on{border-color:var(--ink);transform:scale(1.05)}
+.emptyArt{text-align:center;padding:14px 8px}.emptyArt svg{width:84px;height:84px}
+.emptyArt b{display:block;font-family:"Patrick Hand";font-size:20px;margin:4px 0}
+.emptyArt button{margin-top:8px;width:auto;padding:10px 18px}
+.recap{background:linear-gradient(135deg,#fff7e6,#eef7e9)}
+html[data-theme=dark] .recap{background:linear-gradient(135deg,#3a3628,#2c3a2c)}
+.recap .rrow{display:flex;justify-content:space-between;gap:10px;font-size:15px;margin-top:6px}
+.view.on{animation:slideIn .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes slideIn{from{opacity:0;transform:translateX(var(--dir,18px))}to{opacity:1;transform:none}}
+.jar .fill{transition:height 1s cubic-bezier(.3,1.4,.5,1)}
+.jar.slosh .glass{animation:slosh .9s ease}
+@keyframes slosh{25%{transform:rotate(-5deg)}55%{transform:rotate(4deg)}80%{transform:rotate(-2deg)}}
+#mmDlg{position:fixed;inset:0;z-index:60;display:grid;place-items:end center;background:rgba(40,50,35,.35);backdrop-filter:blur(3px)}
+#mmDlg.hide{display:none}
+#mmDlg .sheet{background:#fffaf0;color:#3d4a3a;width:min(460px,100%);border-radius:26px 26px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:up .28s ease}
+html[data-theme=dark] #mmDlg .sheet{background:#2b3329;color:#eef2e6}
+@keyframes up{from{transform:translateY(100%)}}
+#mmDlg p{font-family:"Patrick Hand";font-size:20px;white-space:pre-line;margin:6px 0 14px;text-align:center}
+#mmDlg .dl{display:flex;gap:10px;margin-top:12px}#mmDlg .dl .btn{flex:1}
+#ptr{position:fixed;top:-60px;left:50%;transform:translateX(-50%);z-index:30;font-size:34px;transition:top .2s}
+#ptr.go{animation:spin 1s linear infinite}@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
+nav button span svg{width:24px;height:24px}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -518,9 +558,12 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
       <div class="msg" id="spiritMsg"></div>
     </div>
     <div data-tip='Each jar is a savings goal. It fills as you save and says if you are ahead, on track or behind.'><div id="homeGoals"></div></div>
+    <div id="recap" class="card recap"></div>
+    <details class="homeMore"><summary>More about this month ▾</summary>
     <div class="card" id="cardSum" style="display:none" data-tip="Tap a card to see every payment made with it — what you bought and where."><div class="label">💳 card spending this month</div><div id="cardRows"></div></div>
     <div class="card"><div class="label">where it went this month</div><div class="cats" id="cats"></div></div>
     <div class="card" id="billsDue" style="display:none"><div class="label">🧾 bills coming up</div><div id="billsDueList"></div></div>
+    </details>
     <button class="btn ghost" onclick="go('plan')" style="margin-bottom:14px">📊 Insights · budgets · bills · badges</button>
   </section>
   <section class="view" id="v-add">
@@ -535,7 +578,7 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
       <input type="file" id="cam" accept="image/*" capture="environment" hidden>
       <input type="file" id="gal" accept="image/*" hidden>
       <div style="height:12px"></div>
-      <label class="f">Amount<input id="fAmount" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></label>
+      <div class="amtWrap"><span id="amtCur"></span><input id="fAmount" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div><div id="catChips" class="chips"></div>
       <div class="row">
         <label class="f">Date<input id="fDate" type="date"></label>
         <label class="f">Category<select id="fCat"></select></label>
@@ -684,7 +727,7 @@ function goalCard(g){
     <div style="flex:1;min-width:0"><b style="font-size:19px">${esc(g.name)}</b> <span class="badge b-${st}">${words[st]}</span>
       <div class="bar"><i style="width:${g.progress*100}%"></i></div>
       <div><b>${fmt(g.saved)}</b> <small>of ${fmt(g.target)} · by ${g.deadline}${g.mode==='jar'?' · 🫙 own jar':g.mode==='shared'?' · 👥 shared jar':''}</small></div>
-      <div class="msg" style="font-size:17px;margin-top:4px">${note}</div>${goalEtaHTML(g)}${sharedLine(g)}
+      <details class="gmore"><summary>${goalOneLine(g)}</summary><div class="msg" style="font-size:17px;margin-top:4px">${note}</div>${goalEtaHTML(g)}${sharedLine(g)}</details>
       <div style="margin-top:6px">${(g.mode==='jar'||g.mode==='shared')?'<button class="x" onclick="jarAdd(\''+g.id+'\')">🫙 add money</button>':''}${g.mode==='jar'?'<button class="x" onclick="shareJar(\''+g.id+'\')">👥 share</button>':''}<button class="x" onclick="editGoal('${g.id}')">✏️ edit</button><button class="x" onclick="delGoal('${g.id}')">🗑️ remove</button></div>
     </div></div></div>`;
 }
@@ -731,7 +774,7 @@ $('saveTx').onclick=async()=>{
   ['fAmount','fSource','fNote','fReceipt'].forEach(i=>$(i).value='');$('preview').hidden=true;$('cam').value='';
   playChime('tap');toast(type==='income'?'🌸 Income planted!':'🍂 Expense tucked away');go('home');if(t.type==='expense')setTimeout(()=>budgetCheck(t.category),1200);
 };
-async function delTx(id){if(confirm('Remove this entry?'))render(await call('deleteTransaction',id))}
+async function delTx(id){if(await mmAsk('Remove this entry?'))render(await call('deleteTransaction',id))}
 $('saveGoal').onclick=async()=>{
   const g={id:$('gId').value,name:$('gName').value,target:$('gTarget').value,emoji:$('gEmoji').value,startDate:$('gStart').value,deadline:$('gEnd').value,mode:$('gMode').value};
   render(await call('saveGoal',g));['gId','gName','gTarget'].forEach(i=>$(i).value='');
@@ -740,7 +783,7 @@ $('saveGoal').onclick=async()=>{
 function editGoal(id){const g=D.goals.find(x=>x.id===id);go('goals');
   $('gId').value=g.id;$('gMode').value=g.mode||'pool';$('gName').value=g.name;$('gTarget').value=g.target;$('gEmoji').value=g.emoji;$('gStart').value=g.startDate;$('gEnd').value=g.deadline;
   $('goalFormTitle').textContent='tending to '+g.name+' ✏️';}
-async function delGoal(id){if(confirm('Remove this goal?'))render(await call('deleteGoal',id))}
+async function delGoal(id){if(await mmAsk('Remove this goal?'))render(await call('deleteGoal',id))}
 $('currency').onchange=async e=>{const c=CURS.find(x=>x[0]===e.target.value)||CURS[0];DB.Settings=DB.Settings.filter(x=>x.key!=='currencyCode');DB.Settings.push({key:'currencyCode',value:c[0]});render(await call('saveSetting','currency',c[1]));toast('💱 Now showing '+c[2]+' ('+c[0]+')');};
 let tipsOn=true;
 function applyTips(on){tipsOn=on;document.body.classList.toggle('tips',on);$('tipsToggle').checked=on;if(!on)hideTip();}
@@ -768,10 +811,10 @@ async function addCard(){const n=($('cName').value||'').trim()||'Card',l=($('cLa
   const cs=getCards();if(cs.some(c=>c.last4===l&&c.name===n))return toast('That card is already saved 💳');
   cs.push({id:'c'+Date.now().toString(36),name:n.slice(0,24),last4:l});
   render(await call('saveSetting','cards',JSON.stringify(cs)));$('cName').value='';$('cLast4').value='';playChime('tap');toast('💳 '+n+' ••'+l+' added');}
-async function removeCard(id){if(!confirm('Remove this card? Past payments keep their record.'))return;render(await call('saveSetting','cards',JSON.stringify(getCards().filter(c=>c.id!==id))));}
+async function removeCard(id){if(!await mmAsk('Remove this card? Past payments keep their record.'))return;render(await call('saveSetting','cards',JSON.stringify(getCards().filter(c=>c.id!==id))));}
 /* ===== goal jars ===== */
 async function jarAdd(id){const g=D.goals.find(x=>x.id===id);if(!g)return;
-  const v=prompt('How much to put in the “'+g.name+'” jar?\n(Use a minus sign, like -500, to take money out.)');if(v===null)return;
+  const v=await mmAsk('How much to put in the “'+g.name+'” jar?\n(Use a minus sign, like -500, to take money out.)',{input:'number'});if(v===null)return;
   const n=Number(String(v).replace(/[^0-9.\-]/g,''));if(!n||!isFinite(n))return toast('Enter an amount 🫙');
   if(g.mode==='shared')await sharedDeposit(g,n);else render(await call('addTransaction',{type:'jar',amount:n,goal:id,category:'Jar',source:g.name,date:today()}));playChime('tap');
   toast(n>0?'🫙 Added '+fmt(n)+' to '+g.name:'🫙 Took '+fmt(-n)+' out of '+g.name);}
@@ -825,7 +868,7 @@ async function addBill(){const n=($('bName').value||'').trim(),a=Number($('bAmt'
   if(!n||!(a>0)||!(d>=1&&d<=31))return toast('Add a name, amount and due day (1–31) 🧾');
   const bs=getBills();bs.push({id:'b'+Date.now().toString(36),name:n.slice(0,40),amount:a,day:d,category:$('bCat').value||'Bills',card:$('bCard').value||'',paid:{}});
   render(await call('saveSetting','bills',JSON.stringify(bs)));['bName','bAmt','bDay'].forEach(i=>$(i).value='');playChime('tap');toast('🧾 '+n+' added — I’ll remind you before the '+ordinal(d));}
-async function delBill(id){if(!confirm('Remove this bill?'))return;render(await call('saveSetting','bills',JSON.stringify(getBills().filter(b=>b.id!==id))));}
+async function delBill(id){if(!await mmAsk('Remove this bill?'))return;render(await call('saveSetting','bills',JSON.stringify(getBills().filter(b=>b.id!==id))));}
 async function payBill(id){const bs=getBills(),b=bs.find(x=>x.id===id);if(!b)return;const ym=today().slice(0,7);
   $('loading').classList.remove('hide');
   try{await API.addTransaction({type:'expense',amount:b.amount,date:today(),category:b.category||'Bills',source:b.name,note:'Bill',card:b.card||''});
@@ -843,7 +886,7 @@ function monthStats(ym){const t=D.tx.filter(x=>String(x.date).slice(0,7)===ym&&x
   const inc=t.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0),out=ex.reduce((s,x)=>s+x.amount,0),byCat={},byCard={};
   ex.forEach(x=>{byCat[x.category]=(byCat[x.category]||0)+x.amount;const k=x.card||'cash';byCard[k]=(byCard[k]||0)+x.amount;});
   return {inc,out,net:inc-out,byCat,byCard,count:t.length};}
-function bars(obj,lab){const e=Object.entries(obj).sort((a,b)=>b[1]-a[1]);if(!e.length)return '<div class="empty">Nothing here yet ✨</div>';const mx=e[0][1]||1;
+function bars(obj,lab){const e=Object.entries(obj).sort((a,b)=>b[1]-a[1]);if(!e.length)return emptyArt('Nothing here yet','Add your first entry','go(\'add\')');const mx=e[0][1]||1;
   return '<div class="cats">'+e.map(([k,v])=>'<div class="cat"><span style="min-width:110px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+lab(k)+'</span><div class="bar"><i style="width:'+(v/mx*100)+'%;background:linear-gradient(90deg,var(--peach),#fbd3bf)"></i></div><b>'+fmt(v)+'</b></div>').join('')+'</div>';}
 function insightNotes(ym){const a=monthStats(ym),pm=prevYm(ym),b=monthStats(pm),out=[];
   if(!b.count){out.push('🌱 Keep logging — next month I can compare it with this one.');}
@@ -895,7 +938,7 @@ function renderBadges(){const st=streaks(),e=new Set();
   if(!first)fresh.forEach((id,i)=>{const bd=BADGES.find(x=>x[0]===id);if(bd)setTimeout(()=>{toast('🏅 New badge: '+bd[1]+' '+bd[2]+'!');playChime('win');},2600+i*3600);});
   $('streakNote').textContent=st.cur?'🔥 '+st.cur+'-day logging streak'+(st.today?' — lovely!':' — log something today to keep it going 🌱')+' · best: '+st.best+' day'+(st.best>1?'s':''):'🌱 Log something today to start a streak!';
   $('badgeGrid').innerHTML=BADGES.map(([id,ic,n,h])=>'<div class="bdg'+(e.has(id)?'':' lock')+'"><span>'+ic+'</span><b>'+n+'</b><br><small>'+h+'</small></div>').join('');
-  if(st.cur>=2)$('greet').textContent+=' · 🔥 '+st.cur+'-day streak';}
+  {let b=$('streakBadge');if(!b){b=document.createElement('span');b.id='streakBadge';$('greet').after(b);}b.textContent=st.cur>=2?'🔥 '+st.cur:'';b.style.display=st.cur>=2?'':'none';b.title=st.cur+'-day streak';}}
 /* ===== shared jars ===== */
 function sharedLine(g){if(g.mode!=='shared')return '';const sh=DB.Shared&&DB.Shared[g.sharedId];
   if(!sh||!sh.deps)return '<div class="eta'+(sh&&sh.ok===false?' late':'')+'">👥 '+(sh&&sh.ok===false?'Couldn’t reach this shared jar right now.':'Loading shared jar…')+'</div>';
@@ -906,7 +949,7 @@ async function sharedDeposit(g,n){$('loading').classList.remove('hide');
     await loadShared();cacheSave();render(buildData());}
   catch(e){toast('🌧️ '+(e.message==='OFFLINE'?'Shared jars need internet':e.message));throw e;}finally{$('loading').classList.add('hide');}}
 async function shareJar(id){const g=D.goals.find(x=>x.id===id);if(!g)return;
-  const em=(prompt('Share “'+g.name+'” with someone — enter their Google (Gmail) address:')||'').trim();if(!em)return;
+  const em=(await mmAsk('Share “'+g.name+'” with someone — enter their Google (Gmail) address:',{input:'email'})||'').trim();if(!em)return;
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return toast('That email doesn’t look right 📧');if(em.toLowerCase()===userEmail.toLowerCase())return toast('That’s your own email 🌱');
   $('loading').classList.remove('hide');
   try{const sid=await createSharedSheet(g,em);
@@ -940,8 +983,8 @@ function showLock(mode){LK.mode=mode||'unlock';LK.buf='';
   $('lockMsg').textContent=LK.mode==='unlock'?'Enter your PIN to open your meadow':'This PIN works only on this device';
   $('lockLink').textContent=LK.mode==='unlock'?'Forgot PIN?':'Cancel';buildPad();lockDots();$('lock').classList.remove('hide');
   if(LK.mode==='unlock'&&ls.get('mm_lock_bio'))setTimeout(bioUnlock,350);}
-function lockLink(){if(LK.mode!=='unlock')return $('lock').classList.add('hide');
-  if(!confirm('To reset your PIN, sign out and sign back in with Google. Your records stay safe in your Google Drive. Sign out now?'))return;
+async function lockLink(){if(LK.mode!=='unlock')return $('lock').classList.add('hide');
+  if(!await mmAsk('To reset your PIN, sign out and sign back in with Google. Your records stay safe in your Google Drive. Sign out now?'))return;
   ['mm_lock_pin','mm_lock_salt','mm_lock_bio'].forEach(k=>ls.del(k));signOut();}
 function lockWrong(m){$('lockMsg').textContent=m;const d=$('lockDots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');LK.buf='';setTimeout(lockDots,300);if(navigator.vibrate)try{navigator.vibrate([40,40,40])}catch(e){}}
 async function padKey(k){if(k==='⌫'){LK.buf=LK.buf.slice(0,-1);return lockDots();}if(k==='👆')return bioUnlock();if(LK.buf.length>=4)return;
@@ -953,7 +996,7 @@ async function padKey(k){if(k==='⌫'){LK.buf=LK.buf.slice(0,-1);return lockDots
 async function bioUnlock(){const id=ls.get('mm_lock_bio');if(!id||!window.PublicKeyCredential)return;
   try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:unb64u(id)}],userVerification:'required',timeout:60000}});$('lock').classList.add('hide');LK.buf='';}
   catch(e){$('lockMsg').textContent='Use your PIN instead';}}
-function removePin(){if(!confirm('Remove the app lock on this device?'))return;['mm_lock_pin','mm_lock_salt','mm_lock_bio'].forEach(k=>ls.del(k));syncLockUI();toast('🔓 App lock removed');}
+async function removePin(){if(!await mmAsk('Remove the app lock on this device?'))return;['mm_lock_pin','mm_lock_salt','mm_lock_bio'].forEach(k=>ls.del(k));syncLockUI();toast('🔓 App lock removed');}
 async function syncLockUI(){const on=hasPin();$('lockState').textContent=on?'🔒 On — asks for your PIN when you open the app or come back after a minute.':'Off — anyone holding your phone can open the app.';
   $('pinBtn').textContent=on?'Change PIN':'Set a PIN';$('pinOff').style.display=on?'flex':'none';
   let bio=false;try{bio=on&&!!window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}catch(e){}
@@ -1126,6 +1169,54 @@ $('loading').classList.add('hide');
 (function(){const v=(location.hash||'').slice(1);if(v&&v!=='home'&&document.getElementById('v-'+v)){try{history.replaceState({v:'home'},'','#home');}catch(e){}go(v);}})();
 setTimeout(()=>{const sp=$('splash');sp.classList.add('gone');setTimeout(()=>sp.remove(),600);},window.__booted?650:900);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+/* ===== UI v2 ===== */
+const CATCOL={Food:'#ffd9b8',Groceries:'#e2f0c9',Transport:'#cfe6f5',Bills:'#fff0a8',Shopping:'#f6d3e4',Health:'#cdeedb',Fun:'#e6dcf7',Home:'#f3e0c6',Other:'#e8eee3',Salary:'#cdeccf',Freelance:'#d6e9fb',Business:'#fbe3c2',"Side hustle":'#efe0fb',Gift:'#fcd8df',Refund:'#d9f2ef'};
+function mmAsk(msg,o){o=o||{};return new Promise(res=>{let d=$('mmDlg');if(!d){d=document.createElement('div');d.id='mmDlg';document.body.appendChild(d);}
+  d.innerHTML='<div class="sheet"><p></p>'+(o.input?'<input id="mmIn" type="'+(o.input==='number'?'text':'email')+'" inputmode="'+(o.input==='number'?'decimal':'email')+'">':'')+'<div class="dl"><button class="btn ghost" id="mmNo">Cancel</button><button class="btn" id="mmYes">'+(o.input?'OK':'Yes')+'</button></div></div>';
+  d.querySelector('p').textContent=msg;d.classList.remove('hide');const inp=$('mmIn');if(inp)setTimeout(()=>inp.focus(),60);
+  const done=v=>{d.classList.add('hide');res(v);};
+  $('mmNo').onclick=()=>done(o.input?null:false);$('mmYes').onclick=()=>done(o.input?inp.value:true);
+  d.onclick=e=>{if(e.target===d)done(o.input?null:false)};if(inp)inp.onkeydown=e=>{if(e.key==='Enter')done(inp.value)};});}
+function goalOneLine(g){if(g.status==='done')return '🎉 Reached · tap for details';const i=goalEtaInfo(g);
+  if(!i)return fmt(g.remaining)+' to go · '+g.daysLeft+' days left ▾';
+  const m=i.text.match(/([A-Z][a-z]{2} \d{1,2}(, \d{4})?)/);return (i.late?'⚠️ ':'✅ ')+fmt(g.remaining)+' to go'+(m?' · ≈ '+m[1]:'');}
+const ART={jar:'<svg viewBox="0 0 64 64"><rect x="18" y="8" width="28" height="8" rx="3" fill="#f3b38c" stroke="#3d4a3a" stroke-width="2.5"/><path d="M14 22q0-6 6-6h24q6 0 6 6v28q0 8-8 8H22q-8 0-8-8z" fill="#fff" stroke="#3d4a3a" stroke-width="2.5"/><path d="M15 40q17-6 34 0v10q0 7-7 7H22q-7 0-7-7z" fill="#a9d49a"/><circle cx="26" cy="34" r="2" fill="#3d4a3a"/><circle cx="38" cy="34" r="2" fill="#3d4a3a"/><path d="M29 39q3 3 6 0" stroke="#3d4a3a" stroke-width="2" fill="none"/></svg>',
+ leaf:'<svg viewBox="0 0 64 64"><path d="M12 52C12 24 30 10 54 10c0 26-16 42-42 42z" fill="#a9d49a" stroke="#3d4a3a" stroke-width="2.5"/><path d="M14 50L44 20" stroke="#3d4a3a" stroke-width="2.5"/></svg>',
+ acorn:'<svg viewBox="0 0 64 64"><path d="M14 26q18-16 36 0z" fill="#b5835a" stroke="#3d4a3a" stroke-width="2.5"/><path d="M17 26h30q0 26-15 30q-15-4-15-30z" fill="#f3c98b" stroke="#3d4a3a" stroke-width="2.5"/><path d="M32 12v-6" stroke="#3d4a3a" stroke-width="3"/></svg>',
+ coin:'<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="22" fill="#ffd96a" stroke="#3d4a3a" stroke-width="2.5"/><circle cx="32" cy="32" r="14" fill="none" stroke="#c99a2b" stroke-width="2.5"/><path d="M26 32l4 4 8-9" stroke="#3d4a3a" stroke-width="3" fill="none"/></svg>',
+ home:'<svg viewBox="0 0 64 64"><path d="M8 32L32 12l24 20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M16 30v22h32V30" fill="#f3e0c6" stroke="currentColor" stroke-width="4"/><rect x="27" y="38" width="10" height="14" fill="#a9d49a"/></svg>',
+ scroll:'<svg viewBox="0 0 64 64"><rect x="14" y="10" width="36" height="44" rx="6" fill="#fff6e0" stroke="currentColor" stroke-width="4"/><path d="M22 24h20M22 32h20M22 40h12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>'};
+function emptyArt(t,cta,act,art){return '<div class="emptyArt">'+ART[art||'leaf']+'<b>'+t+'</b>'+(cta?'<button class="btn" onclick="'+act+'">'+cta+'</button>':'')+'</div>';}
+function countUp(el,to){if(!el)return;const txt=fmt(to);if(matchMedia('(prefers-reduced-motion: reduce)').matches||!isFinite(to)){el.textContent=txt;return;}
+  const from=countUp.last[el.id]||0;countUp.last[el.id]=to;const t0=performance.now(),dur=700;
+  (function step(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1)requestAnimationFrame(step);else el.textContent=txt;})(t0);}
+countUp.last={};
+function renderChips(){const box=$('catChips');if(!box)return;const t=document.querySelector('.seg button.on')?.dataset.t||'expense';
+  box.innerHTML=CATS[t].map(c=>'<button type="button" class="chip'+($('fCat').value===c?' on':'')+'" style="--cc:'+(CATCOL[c]||'#eee')+'" data-c="'+c+'">'+(ICON[c]||'🍃')+' '+c+'</button>').join('');
+  box.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{$('fCat').value=b.dataset.c;$('fCat').dispatchEvent(new Event('change'));renderChips();});
+  const sym=(D&&D.settings&&D.settings.currency)||'';if($('amtCur'))$('amtCur').textContent=sym;}
+function renderRecap(){const r=$('recap');if(!r||!D)return;const wk=Date.now()-7*864e5;
+  const tx=D.tx.filter(t=>new Date(t.date+'T12:00:00').getTime()>=wk);
+  if(!D.tx.length){r.innerHTML=emptyArt('Your meadow is empty','Add your first entry',"go('add')",'jar');return;}
+  const inn=tx.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0),out=tx.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  const bc={};tx.filter(t=>t.type==='expense').forEach(t=>bc[t.category]=(bc[t.category]||0)+t.amount);const top=Object.entries(bc).sort((a,b)=>b[1]-a[1])[0];
+  r.innerHTML='<div class="label">🌤️ your week</div><div class="rrow"><span>🌸 in</span><b>'+fmt(inn)+'</b></div><div class="rrow"><span>🍂 out</span><b>'+fmt(out)+'</b></div>'+(top?'<div class="rrow"><span>most on</span><b>'+(ICON[top[0]]||'🍃')+' '+esc(top[0])+'</b></div>':'')+'<div class="rrow"><span>kept</span><b>'+fmt(inn-out)+'</b></div>';}
+function uiAfterRender(){try{
+  const b=$('balance');if(b&&D&&D.summary&&typeof D.summary.balance==='number')countUp(b,D.summary.balance);
+  const hg=$('homeGoals');if(hg){const cards=[...hg.children];if(cards.length>2&&!hg.querySelector('.seeAll')){cards.slice(2).forEach(c=>c.style.display='none');const a=document.createElement('button');a.className='btn ghost seeAll';a.style.marginBottom='14px';a.textContent='See all '+cards.length+' goals →';a.onclick=()=>go('goals');hg.appendChild(a);}
+    if(!cards.length)hg.innerHTML='<div class="card">'+emptyArt('No goals planted yet','🌱 Plant a goal',"go('goals')",'acorn')+'</div>';}
+  const h=$('txList');if(h&&D&&!D.tx.length&&!h.querySelector('.emptyArt'))h.innerHTML=emptyArt('No entries yet','＋ Add one',"go('add')",'scroll');
+  document.querySelectorAll('.jar .fill').forEach(f=>{const j=f.closest('.jar');const k=f.style.height;if(j.dataset.h&&j.dataset.h!==k){j.classList.remove('slosh');void j.offsetWidth;j.classList.add('slosh');}j.dataset.h=k;});
+  renderRecap();renderChips();}catch(e){console.warn('ui',e)}}
+(function(){const r0=render;render=function(d){const out=r0.apply(this,arguments);uiAfterRender();return out;};
+  const icons={home:'home',hist:'scroll',jars:'jar',goals:'acorn'};document.querySelectorAll('nav button[data-v]').forEach(b=>{const k=icons[b.dataset.v];const s=b.querySelector('span');if(k&&s)s.innerHTML=ART[k];});
+  const order=['home','hist','add','jars','goals','plan'];let cur='home';const g0=go;go=function(v){document.documentElement.style.setProperty('--dir',(order.indexOf(v)>=order.indexOf(cur)?18:-18)+'px');cur=v;const o=g0.apply(this,arguments);if(v==='add')renderChips();return o;};
+  document.querySelectorAll('.seg button[data-t]').forEach(b=>b.addEventListener('click',()=>setTimeout(renderChips,0)));
+  const p=document.createElement('div');p.id='ptr';p.textContent='🍃';document.body.appendChild(p);let y0=null,dy=0;
+  addEventListener('touchstart',e=>{y0=(scrollY<=0&&!document.querySelector('#mmDlg:not(.hide)'))?e.touches[0].clientY:null;dy=0},{passive:true});
+  addEventListener('touchmove',e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy>0)p.style.top=Math.min(dy/2,70)-60+'px';},{passive:true});
+  addEventListener('touchend',async()=>{if(y0===null)return;y0=null;if(dy>120&&typeof silentRefresh==='function'){p.classList.add('go');p.style.top='20px';try{await silentRefresh();toast('🍃 Meadow refreshed')}catch(e){}p.classList.remove('go');}p.style.top='-60px';});
+  if(D)uiAfterRender();})();
 </script>
 <div id="tipBubble"></div>
 </body>
