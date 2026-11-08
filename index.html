@@ -260,6 +260,7 @@ html[data-theme=dark] #mmDlg .sheet{background:#2b3329;color:#eef2e6}
 #ptr{position:fixed;top:-60px;left:50%;transform:translateX(-50%);z-index:30;font-size:34px;transition:top .2s}
 #ptr.go{animation:spin 1s linear infinite}@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
 nav button span svg{width:24px;height:24px}
+#storeChip{border:0;background:rgba(255,255,255,.75);color:var(--ink);border-radius:14px;padding:6px 10px;font:inherit;font-size:13px;margin-top:4px;padding:3px 9px;font-size:12px;white-space:nowrap;cursor:pointer}html[data-theme=dark] #storeChip{background:rgba(0,0,0,.3)}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -297,7 +298,9 @@ function getToken(){
   return Promise.reject(new Error('NEED_SIGNIN'));
 }
 document.addEventListener('click', () => { if (navigator.onLine && tokenClient && window.__booted && userEmail && (!token || Date.now() > tokenExp) && !tokenWaiters.length) requestToken('').catch(()=>{}); }, true);
+const isLocal = () => ls.get('mm_local') === '1';
 async function gcall(url, opt = {}){
+  if (isLocal() && !window.__linking) throw new Error('Connect Google Drive in Goals → Settings to use this ☁️');
   const t = await getToken();
   const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + t }, opt.headers || {}) }));
   if (r.status === 401) { token = null; throw new Error('Your session ended — tap again to continue 🌱'); }
@@ -321,6 +324,7 @@ async function openSpreadsheet(){
   gcall(SHEETS + '/' + id + '/values:batchUpdate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ valueInputOption: 'RAW', data: [{ range: 'Transactions!A1', values: [HEAD.Transactions] }, { range: 'Goals!A1', values: [HEAD.Goals] }] }) }).catch(()=>{});
 }
 async function loadAll(){
+  if (isLocal()) { cacheSave(); return; }
   const r = await gcall(SHEETS + '/' + SS + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&' + Object.keys(HEAD).map(t => 'ranges=' + encodeURIComponent(t + '!A2:K')).join('&'));
   Object.keys(HEAD).forEach((t, i) => {
     const rows = (r.valueRanges[i].values || []).filter(row => row[0] !== undefined && row[0] !== '');
@@ -348,6 +352,7 @@ async function saveTable(t){ try { await saveTableRaw(t); ls.del('mm_pend_' + t)
 async function flushPending(){ for (const t of Object.keys(HEAD)) if (ls.get('mm_pend_' + t)) { await saveTableRaw(t); ls.del('mm_pend_' + t); } }
 window.addEventListener('online', () => { if (token && Date.now() < tokenExp && window.silentRefresh) silentRefresh(); });
 async function saveTableRaw(t){
+  if (isLocal()) { cacheSave(); return; }
   const values = DB[t].map(o => HEAD[t].map(k => o[k] === undefined ? '' : o[k]));
   await gcall(SHEETS + '/' + SS + '/values/' + encodeURIComponent(t + '!A2:K') + ':clear', { method: 'POST' });
   if (values.length) await gcall(SHEETS + '/' + SS + '/values/' + encodeURIComponent(t + '!A2') + '?valueInputOption=RAW', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ values }) });
@@ -379,6 +384,7 @@ const API = {
     await saveTable('Settings'); return buildData();
   },
   async scanReceipt(dataUrl, fileName){
+    if (isLocal()) { toast('☁️ Connect Google Drive to read receipts automatically. Type the amount for now.'); return { amount: 0, date: todayStr(), source: '', category: 'Other', receiptUrl: '' }; }
     const blob = await (await fetch(dataUrl)).blob();
     let folder = ls.get('mm_folder_' + userEmail);
     if (folder) { try { await gcall(DRIVE + '/files/' + folder + '?fields=id,trashed').then(f => { if (f.trashed) folder = null; }); } catch(e) { folder = null; } }
@@ -454,7 +460,10 @@ async function signIn(prompt){
     ls.set('mm_tok', JSON.stringify({ t: token, exp: tokenExp, email: userEmail }));
     document.getElementById('who').textContent = userEmail;
     document.getElementById('loading').classList.remove('hide');
-    try { await openSpreadsheet(); } catch(e) { throw new Error('Could not set up your Meadow Money sheet (' + e.message + ')'); }
+    const wasLocal = isLocal(), localDB = wasLocal ? JSON.parse(JSON.stringify(DB)) : null;
+    if (wasLocal) { window.__linking = true; ls.del('mm_local'); }
+    try { await openSpreadsheet(); } catch(e) { if (wasLocal) ls.set('mm_local','1'); throw new Error('Could not set up your Meadow Money sheet (' + e.message + ')'); } finally { window.__linking = false; }
+    if (wasLocal) { await loadAll(); for (const t of Object.keys(HEAD)) { const ids = new Set(DB[t].map(r => r.id || r.key)); (localDB[t] || []).forEach(r => { if (!ids.has(r.id || r.key)) DB[t].push(r); }); await saveTableRaw(t); } ls.del('mm_cache_local'); toast('☁️ Your meadow is now saved in Google Drive'); }
     document.getElementById('signin').classList.add('hide');
     render(await call('getData'));
     window.__booted = true;
@@ -466,10 +475,21 @@ async function signIn(prompt){
     else { note.textContent = '🌧️ ' + e.message + ' — tap the button to try again.'; note.style.display = 'block'; window.__needConsent = /permission|scope|insufficient/i.test(e.message); }
   } finally { if (btn) btn.disabled = false; }
 }
-function signOut(){try{google.accounts.id.disableAutoSelect()}catch(e){}
+async function signOut(){if(isLocal()&&!(await mmAsk('This removes everything saved on this phone. Back up to Google Drive first if you want to keep it. Continue?')))return;ls.del('mm_local');try{google.accounts.id.disableAutoSelect()}catch(e){}
   try { if (token) google.accounts.oauth2.revoke(token, () => {}); } catch(e){}
   ls.del('mm_cache_' + userEmail); token = null; userEmail = ''; ls.del('mm_email'); ls.del('mm_tok'); location.reload();
 }
+function startLocal(){ ls.set('mm_local','1'); userEmail = 'local'; ls.set('mm_email','local'); SS = 'local';
+  DB = { Transactions: [], Goals: [], Settings: defaultCurrencyRows().map(([key, value]) => ({ key, value })) }; cacheSave();
+  $('signin').classList.add('hide'); window.__booted = true; render(buildData()); localUI(); setTimeout(openSetup, 300); }
+function localUI(){ const l = isLocal(); const c = $('storeChip'); if (c) { c.textContent = l ? '💾 This phone' : '☁️ Drive'; c.title = l ? 'Saved on this device. Tap to back up to Google Drive.' : 'Saved in your Google Drive'; }
+  const w = $('who'); if (w && l) w.textContent = 'this phone only'; const sl = $('sheetLink'); if (sl) sl.style.display = l ? 'none' : '';
+  const cb = $('connectDrive'); if (cb) cb.style.display = l ? '' : 'none'; }
+function openSetup(){ const d = $('setupSheet'); if (!d) return; $('suCur').value = (D && D.settings.currency) || '₱'; d.classList.remove('hide'); }
+async function saveSetup(){ const cur = $('suCur').value.trim() || '₱', n = $('suGoal').value.trim(), t = Number($('suTarget').value), dl = $('suDate').value;
+  await call('saveSetting', 'currency', cur);
+  if (n && t > 0 && dl) render(await call('saveGoal', { name: n, target: t, deadline: dl, emoji: '🌱', mode: 'pool' })); else render(buildData());
+  $('setupSheet').classList.add('hide'); toast('🌱 Your meadow is ready!'); }
 function bootSignin(){
   const el = document.getElementById('signin'); el.classList.remove('hide');
   document.getElementById('signinBtn').innerHTML = '<span style="font-size:20px;font-weight:700;color:#4285f4">G</span> ' + (userEmail ? 'Continue as ' + userEmail : 'Sign in with Google');
@@ -485,7 +505,7 @@ async function resumeSession(){
     if (window.maybeShowInstall) maybeShowInstall();
   } catch(e) { token = null; ls.del('mm_tok'); document.getElementById('loading').classList.add('hide'); bootSignin(); }
 }
-function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth();
+function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth(); if(isLocal()) return;
   let c = null; try { c = JSON.parse(ls.get('mm_tok') || 'null'); } catch(e) {}
   if (c && c.t && c.exp > Date.now() + 60000 && userEmail && (!c.email || c.email === userEmail)) { token = c.t; tokenExp = c.exp; if (window.__booted) silentRefresh(); else resumeSession(); }
   else if (!window.__booted) { bootSignin(); oneTap(); } }
@@ -518,7 +538,9 @@ async function silentRefresh(){ if (silentRefresh.busy || !SS) return; silentRef
 <div class="overlay hide" id="signin"><div class="card">
   <img src="icon-512.png" alt="">
   <h2>Meadow Money</h2>
-  <p>Your cozy savings &amp; income tracker. Your records are saved privately in <b>your own Google Drive</b>.</p>
+  <p>Your cozy savings &amp; income tracker. Start right away, no account needed.</p>
+  <button class="btn" style="margin-bottom:10px" onclick="startLocal()">🌱 Start now</button>
+  <div style="font-size:14px;color:var(--soft);margin:4px 0 8px">or keep it backed up and synced across devices</div>
   <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
   <p id="signinNote" style="display:none;background:#fbefe0;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.4;text-align:left"></p>
   <button class="linkbtn" id="switchAcct" onclick="signIn('select_account')">Use a different Google account</button>
@@ -545,7 +567,7 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
       <circle cx="23" cy="36" r="2.6" fill="#3d4a3a"/><circle cx="37" cy="36" r="2.6" fill="#3d4a3a"/>
       <ellipse cx="19" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/><ellipse cx="41" cy="42" rx="3.5" ry="2" fill="#f6b89a" opacity=".8"/>
       <path d="M27 42q3 3 6 0" stroke="#3d4a3a" stroke-width="2" fill="none" stroke-linecap="round"/></g></svg>
-    <div><h1>Meadow Money</h1><div class="sub" id="greet">hello there ✿</div></div>
+    <div><h1>Meadow Money</h1><div class="sub" id="greet">hello there ✿</div><button id="storeChip" onclick="isLocal()?signIn(''):go('goals')">☁️ Drive</button></div>
     <button class="musicbtn" id="musicBtn" aria-label="Turn music on or off" data-tip="Turn the meadow music on or off. More sound settings are in 🌱 Goals.">🎶</button>
     <button class="musicbtn" id="themeBtn" aria-label="Change theme">🌗</button>
   </header>
@@ -665,7 +687,7 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
         <button class="btn ghost" onclick="addCard()">＋ Add card</button>
         <small class="hint" style="margin-top:8px">🔒 Only the last 4 digits are saved — never enter your full card number.</small></div>
       <div class="setgroup"><div class="label">🔒 app lock</div><small class="hint" id="lockState"></small><div class="row"><button class="btn ghost" id="pinBtn" onclick="showLock('set1')">Set a PIN</button><button class="btn ghost" id="pinOff" onclick="removePin()" style="display:none">Remove</button></div><label class="f tiprow" id="bioRow" style="display:none;margin-top:12px"><input type="checkbox" id="bioToggle"> 👆 Unlock with Face ID / fingerprint</label></div>
-      <div class="acct">Signed in as <b id="who"></b> <a id="sheetLink" target="_blank" rel="noopener">📄 My data sheet</a><button onclick="signOut()">Sign out</button></div>
+      <div class="acct">Saved to <b id="who"></b> <button id="connectDrive" style="display:none" onclick="signIn('')">☁️ Back up to Google Drive</button> <a id="sheetLink" target="_blank" rel="noopener">📄 My data sheet</a><button onclick="signOut()">Sign out</button></div>
       <button class="btn ghost" id="installBtn2" onclick="doInstall()" style="margin-top:14px">📲 Install app on this device</button>
       <div class="legal"><a href="privacy.html">Privacy policy</a></div>
     </div>
@@ -1177,7 +1199,7 @@ setType('expense');$('fDate').value=today();$('gStart').value=today();
 $('loading').classList.add('hide');
 (function bootFromCache(){ try { if(window.__inApp||!userEmail) return; let c=null; try{c=JSON.parse(ls.get('mm_cache_'+userEmail)||'null')}catch(e){}
   if(!c||!c.SS||!c.DB) return; SS=c.SS; DB=Object.assign({Transactions:[],Goals:[],Settings:[]},c.DB);
-  $('who').textContent=userEmail; window.__booted=true; render(buildData()); $('sheetLink').href='https://docs.google.com/spreadsheets/d/'+SS;
+  $('who').textContent=userEmail; window.__booted=true; render(buildData()); localUI(); $('sheetLink').href='https://docs.google.com/spreadsheets/d/'+SS;
   setTimeout(()=>{if(window.maybeShowInstall)maybeShowInstall()},600); } catch(e) { console.error(e); } })();
 (function(){const v=(location.hash||'').slice(1);if(v&&v!=='home'&&document.getElementById('v-'+v)){try{history.replaceState({v:'home'},'','#home');}catch(e){}go(v);}})();
 setTimeout(()=>{const sp=$('splash');sp.classList.add('gone');setTimeout(()=>sp.remove(),600);},window.__booted?650:900);
@@ -1232,5 +1254,14 @@ function uiAfterRender(){try{
   if(D)uiAfterRender();})();
 </script>
 <div id="tipBubble"></div>
+<div class="overlay hide" id="setupSheet"><div class="card" style="text-align:left">
+  <h2 style="text-align:center">🌱 Set up in 1 minute</h2>
+  <p style="text-align:center;margin-top:0">You can change these anytime in Goals.</p>
+  <label class="f">Currency symbol<input id="suCur" maxlength="4"></label>
+  <label class="f">What are you saving for? <input id="suGoal" placeholder="e.g. Japan trip, laptop, emergency fund"></label>
+  <div class="row"><label class="f">How much<input id="suTarget" type="number" inputmode="decimal" placeholder="50000"></label><label class="f">By when<input id="suDate" type="date"></label></div>
+  <button class="btn" onclick="saveSetup()">Plant my goal ✿</button>
+  <button class="linkbtn" style="display:block;margin:10px auto 0" onclick="$('setupSheet').classList.add('hide')">Skip for now</button>
+</div></div>
 </body>
 </html>
