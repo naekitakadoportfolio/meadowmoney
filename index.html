@@ -466,7 +466,7 @@ async function signIn(prompt){
     else { note.textContent = '🌧️ ' + e.message + ' — tap the button to try again.'; note.style.display = 'block'; window.__needConsent = /permission|scope|insufficient/i.test(e.message); }
   } finally { if (btn) btn.disabled = false; }
 }
-function signOut(){
+function signOut(){try{google.accounts.id.disableAutoSelect()}catch(e){}
   try { if (token) google.accounts.oauth2.revoke(token, () => {}); } catch(e){}
   ls.del('mm_cache_' + userEmail); token = null; userEmail = ''; ls.del('mm_email'); ls.del('mm_tok'); location.reload();
 }
@@ -488,7 +488,20 @@ async function resumeSession(){
 function gisReady(){ if(document.readyState==='loading') return document.addEventListener('DOMContentLoaded',gisReady); if(window.__inApp) return; initAuth();
   let c = null; try { c = JSON.parse(ls.get('mm_tok') || 'null'); } catch(e) {}
   if (c && c.t && c.exp > Date.now() + 60000 && userEmail && (!c.email || c.email === userEmail)) { token = c.t; tokenExp = c.exp; if (window.__booted) silentRefresh(); else resumeSession(); }
-  else if (!window.__booted) bootSignin(); }
+  else if (!window.__booted) { bootSignin(); oneTap(); } }
+function oneTap(){ try {
+  if (!google.accounts.id) return;
+  google.accounts.id.initialize({ client_id: CLIENT_ID, auto_select: true, cancel_on_tap_outside: false, use_fedcm_for_prompt: true, itp_support: true, context: 'signin',
+    login_hint: userEmail || undefined,
+    callback: r => { try {
+      const pl = JSON.parse(decodeURIComponent(escape(atob(r.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));
+      if (pl.email) { userEmail = pl.email; ls.set('mm_email', pl.email); }
+      const b = document.getElementById('signinBtn');
+      if (b) { b.innerHTML = '<b style="color:#4285f4">G</b> Continue as ' + esc(pl.given_name || pl.email); b.disabled = false; }
+      signIn('').catch(() => {});
+    } catch(e) {} } });
+  google.accounts.id.prompt();
+} catch(e) {} }
 async function silentRefresh(){ if (silentRefresh.busy || !SS) return; silentRefresh.busy = true; try { await flushPending(); await loadAll(); render(buildData()); } catch(e){} silentRefresh.busy = false; }
 </script>
 <script src="https://accounts.google.com/gsi/client" async onload="gisReady()"></script>

@@ -1,4 +1,4 @@
-const C='meadow-v5';
+const C='meadow-v6';
 const SHELL=['./','index.html','manifest.json','icon.svg','icon-192.png','icon-512.png','privacy.html'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)).catch(()=>{}));});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
