@@ -261,6 +261,7 @@ html[data-theme=dark] #mmDlg .sheet{background:#2b3329;color:#eef2e6}
 #ptr.go{animation:spin 1s linear infinite}@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
 nav button span svg{width:24px;height:24px}
 #storeChip{border:0;background:rgba(255,255,255,.75);color:var(--ink);border-radius:14px;padding:6px 10px;font:inherit;font-size:13px;margin-top:4px;padding:3px 9px;font-size:12px;white-space:nowrap;cursor:pointer}html[data-theme=dark] #storeChip{background:rgba(0,0,0,.3)}
+.phoneNote{background:#fff4dc;border:2px dashed #e8c98a;border-radius:18px;padding:12px 14px;font-size:14px;line-height:1.4;margin:6px 0 12px;text-align:left;color:#4a3f2a}.phoneNote ul{margin:6px 0;padding-left:18px}html[data-theme=dark] .phoneNote{background:#3a3424;color:#f1e6cc;border-color:#7a6638}
 </style>
 <script>
 const CLIENT_ID = '442464667210-4vlbcglpmnftcgtoacvhlirhvs5pn2pm.apps.googleusercontent.com';
@@ -484,9 +485,11 @@ function startLocal(){ ls.set('mm_local','1'); userEmail = 'local'; ls.set('mm_e
   $('signin').classList.add('hide'); window.__booted = true; render(buildData()); localUI(); setTimeout(openSetup, 300); }
 function localUI(){ const l = isLocal(); const c = $('storeChip'); if (c) { c.textContent = l ? '💾 This phone' : '☁️ Drive'; c.title = l ? 'Saved on this device. Tap to back up to Google Drive.' : 'Saved in your Google Drive'; }
   const w = $('who'); if (w && l) w.textContent = 'this phone only'; const sl = $('sheetLink'); if (sl) sl.style.display = l ? 'none' : '';
-  const cb = $('connectDrive'); if (cb) cb.style.display = l ? '' : 'none'; }
-function openSetup(){ const d = $('setupSheet'); if (!d) return; $('suCur').value = (D && D.settings.currency) || '₱'; d.classList.remove('hide'); }
-async function saveSetup(){ const cur = $('suCur').value.trim() || '₱', n = $('suGoal').value.trim(), t = Number($('suTarget').value), dl = $('suDate').value;
+  const cb = $('connectDrive'); if (cb) cb.style.display = l ? '' : 'none';
+  const pb = $('phoneBanner'); if (pb) pb.style.display = l && !ls.get('mm_phone_ok') ? '' : 'none'; }
+function openSetup(){ const d = $('setupSheet'); if (!d) return; $('suCur').innerHTML = $('currency').innerHTML; $('suCur').value = (D && (D.settings.currencyCode || codeFromSymbol(D.settings.currency))) || 'PHP'; d.querySelector('.phoneNote').style.display = isLocal() ? '' : 'none'; d.classList.remove('hide'); }
+async function saveSetup(){ const cc = CURS.find(x => x[0] === $('suCur').value) || CURS[0], cur = cc[1]; n = $('suGoal').value.trim(), t = Number($('suTarget').value), dl = $('suDate').value;
+  DB.Settings = DB.Settings.filter(x => x.key !== 'currencyCode'); DB.Settings.push({ key: 'currencyCode', value: cc[0] });
   await call('saveSetting', 'currency', cur);
   if (n && t > 0 && dl) render(await call('saveGoal', { name: n, target: t, deadline: dl, emoji: '🌱', mode: 'pool' })); else render(buildData());
   $('setupSheet').classList.add('hide'); toast('🌱 Your meadow is ready!'); }
@@ -539,7 +542,8 @@ async function silentRefresh(){ if (silentRefresh.busy || !SS) return; silentRef
   <img src="icon-512.png" alt="">
   <h2>Meadow Money</h2>
   <p>Your cozy savings &amp; income tracker. Start right away, no account needed.</p>
-  <button class="btn" style="margin-bottom:10px" onclick="startLocal()">🌱 Start now</button>
+  <button class="btn" style="margin-bottom:4px" onclick="startLocal()">🌱 Start now</button>
+  <div style="font-size:13px;color:var(--soft);margin-bottom:8px">Saved on this phone only. No receipt reading, shared jars or syncing until you back up to Google Drive.</div>
   <div style="font-size:14px;color:var(--soft);margin:4px 0 8px">or keep it backed up and synced across devices</div>
   <button class="btn gbtn" id="signinBtn" onclick="signIn('')"><span style="font-size:20px;font-weight:700;color:#4285f4">G</span> Sign in with Google</button>
   <p id="signinNote" style="display:none;background:#fbefe0;border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.4;text-align:left"></p>
@@ -572,6 +576,7 @@ if(window.__inApp)document.getElementById('gate').classList.remove('hide');
     <button class="musicbtn" id="themeBtn" aria-label="Change theme">🌗</button>
   </header>
   <section class="view on" id="v-home">
+    <div class="card phoneNote" id="phoneBanner" style="display:none"><b>💾 Saved on this phone only</b><ul><li>Receipt photos aren’t read automatically, so type the amount in.</li><li>Shared jars don’t work.</li><li>Nothing syncs between your devices.</li><li>Clearing browser data or uninstalling the app deletes your records.</li></ul>Back up to Google Drive anytime to unlock these and keep your records safe.<div class="row" style="margin-top:10px"><button class="btn" onclick="signIn('')">☁️ Back up now</button><button class="btn ghost" onclick="ls.set('mm_phone_ok','1');localUI()">Got it</button></div></div>
     <div class='card' id='tutCard'>
       <div class='label'>welcome to your meadow ✿ quick tour</div>
       <ol>
@@ -1257,9 +1262,10 @@ function uiAfterRender(){try{
 <div class="overlay hide" id="setupSheet"><div class="card" style="text-align:left">
   <h2 style="text-align:center">🌱 Set up in 1 minute</h2>
   <p style="text-align:center;margin-top:0">You can change these anytime in Goals.</p>
-  <label class="f">Currency symbol<input id="suCur" maxlength="4"></label>
+  <label class="f">Currency<select id="suCur"></select></label>
   <label class="f">What are you saving for? <input id="suGoal" placeholder="e.g. Japan trip, laptop, emergency fund"></label>
   <div class="row"><label class="f">How much<input id="suTarget" type="number" inputmode="decimal" placeholder="50000"></label><label class="f">By when<input id="suDate" type="date"></label></div>
+<div class="phoneNote"><b>💾 Saved on this phone only</b><ul><li>Receipt photos aren’t read automatically, so type the amount in.</li><li>Shared jars don’t work.</li><li>Nothing syncs between your devices.</li><li>Clearing browser data or uninstalling the app deletes your records.</li></ul>Back up to Google Drive anytime to unlock these and keep your records safe.</div>
   <button class="btn" onclick="saveSetup()">Plant my goal ✿</button>
   <button class="linkbtn" style="display:block;margin:10px auto 0" onclick="$('setupSheet').classList.add('hide')">Skip for now</button>
 </div></div>
